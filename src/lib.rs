@@ -67,6 +67,7 @@ assert_eq!([4, 6], rect.size());
 assert_eq!([3, 5], rect.center());
 assert_eq!(20, rect.perimeter());
 assert_eq!(24, rect.area());
+assert!(rect.contains([3, 5]));
 ```
 
 Both vector and rectangle types can be easily mapped to different types:
@@ -136,7 +137,10 @@ assert_eq!(6.0, rect.bottom());
 ```
 */
 
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::{
+    ops::{Add, Div, Mul, Neg, Sub},
+    vec,
+};
 
 /// Trait for defining a pair of items of the same type.
 ///
@@ -264,6 +268,49 @@ impl Cos for f64 {
     }
 }
 
+/// Trait for retrieving an absolute value of a number
+pub trait Abs {
+    /// Get the absolute value of the number
+    fn abs(self) -> Self;
+}
+
+macro_rules! abs_unsigned_impl {
+    ($type:ty) => {
+        impl Abs for $type {
+            fn abs(self) -> Self {
+                self
+            }
+        }
+    };
+}
+
+macro_rules! abs_signed_impl {
+    ($type:ty) => {
+        impl Abs for $type {
+            fn abs(self) -> Self {
+                Self::abs(self)
+            }
+        }
+    };
+}
+
+abs_unsigned_impl! {u8}
+abs_unsigned_impl! {u16}
+abs_unsigned_impl! {u32}
+abs_unsigned_impl! {u64}
+abs_unsigned_impl! {u128}
+abs_unsigned_impl! {usize}
+
+abs_signed_impl! {i8}
+abs_signed_impl! {i16}
+abs_signed_impl! {i32}
+abs_signed_impl! {i64}
+abs_signed_impl! {i128}
+abs_signed_impl! {isize}
+
+abs_signed_impl! {f32}
+abs_signed_impl! {f64}
+
 /// Trait for raising numbers to a power
 pub trait Pow<P> {
     /// The output type
@@ -342,10 +389,14 @@ pub trait Scalar:
     + Sub<Self, Output = Self>
     + Mul<Self, Output = Self>
     + Div<Self, Output = Self>
+    + Abs
     + ZeroOneTwo
 {
     /// Get the max of this `Scalar` and another
-    fn max(self, other: Self) -> Self {
+    ///
+    /// This function is named to not conflict with the
+    /// `Scalar`'s default `max` function
+    fn maxx(self, other: Self) -> Self {
         if self > other {
             self
         } else {
@@ -353,7 +404,10 @@ pub trait Scalar:
         }
     }
     /// Get the min of this `Scalar` and another
-    fn min(self, other: Self) -> Self {
+    ///
+    /// This function is named to not conflict with the
+    /// `Scalar`'s default `min` function
+    fn minn(self, other: Self) -> Self {
         if self < other {
             self
         } else {
@@ -370,38 +424,19 @@ impl<T> Scalar for T where
         + Sub<T, Output = T>
         + Mul<T, Output = T>
         + Div<T, Output = T>
+        + Abs
         + ZeroOneTwo
 {
 }
 
-/// Trait for scalars that can be negated
-pub trait NegScalar: Scalar + Neg<Output = Self> {
-    /// Get the abolute value of this `Scalar`
-    fn abs(self) -> Self;
-}
-
-impl<T> NegScalar for T
-where
-    T: Scalar + Neg<Output = Self>,
-{
-    /// Get the absolute value
-    fn abs(self) -> Self {
-        if self >= Self::ZERO {
-            self
-        } else {
-            self.neg()
-        }
-    }
-}
-
 /// Trait for floating-point scalar numbers
 pub trait FloatingScalar:
-    NegScalar + Pow<Self, Output = Self> + Sin<Output = Self> + Cos<Output = Self>
+    Scalar + Pow<Self, Output = Self> + Sin<Output = Self> + Cos<Output = Self>
 {
 }
 
 impl<T> FloatingScalar for T where
-    T: NegScalar + Pow<Self, Output = Self> + Sin<Output = T> + Cos<Output = T>
+    T: Scalar + Pow<Self, Output = Self> + Sin<Output = T> + Cos<Output = T>
 {
 }
 
@@ -434,6 +469,13 @@ pub trait Vector2: Copy {
         F: FnMut(Self::Scalar) -> V::Scalar,
     {
         V::new(f(self.x()), f(self.y()))
+    }
+    /// Negate the vector
+    fn neg(self) -> Self
+    where
+        Self::Scalar: Neg<Output = Self::Scalar>,
+    {
+        Self::new(-self.x(), -self.y())
     }
     /// Add the vector to another
     fn add<V>(self, other: V) -> Self
@@ -471,6 +513,14 @@ pub trait Vector2: Copy {
     {
         Self::new(self.x() / other.x(), self.y() / other.y())
     }
+    /// Get the value of the dimmension with the higher magnitude
+    fn max_dim(self) -> Self::Scalar {
+        if self.x().abs() > self.y().abs() {
+            self.x()
+        } else {
+            self.y()
+        }
+    }
 }
 
 impl<P> Vector2 for P
@@ -488,32 +538,6 @@ where
     fn new(x: P::Item, y: P::Item) -> Self {
         Self::from_items(x, y)
     }
-}
-
-/// Trait for manipulating negatable 2D vectors
-pub trait NegVector2: Vector2
-where
-    Self::Scalar: NegScalar,
-{
-    /// Negate the vector
-    fn neg(self) -> Self {
-        Self::new(-self.x(), -self.y())
-    }
-    /// Get the value of the dimmension with the higher magnitude
-    fn max_dim(self) -> Self::Scalar {
-        if self.x().abs() > self.y().abs() {
-            self.x()
-        } else {
-            self.y()
-        }
-    }
-}
-
-impl<T> NegVector2 for T
-where
-    T: Vector2,
-    T::Scalar: NegScalar,
-{
 }
 
 /// Trait for manipulating floating-point 2D vectors
@@ -557,7 +581,25 @@ where
 {
 }
 
-/// Trait for manipulating axis-aligned rectangles
+/**
+Trait for manipulating axis-aligned rectangles
+
+Because the primary expected use for this crate is in 2D graphics and alignment implementations,
+a coordinate system where the positive Y direction is "down" is assumed.
+
+# Note
+Methods of the form `abs_` account for the case where the size if negative.
+If the size is not negative, they are identical to their non-`abs_` counterparts.
+```
+use vector2math::*;
+
+let pos_size = [1, 2, 3, 4];
+assert_eq!(pos_size.right(), pos_size.abs_right());
+
+let neg_size = [1, 2, -3, -4];
+assert_ne!(neg_size.right(), neg_size.abs_right());
+```
+*/
 pub trait Rectangle: Copy {
     /// The scalar type
     type Scalar: Scalar;
@@ -591,7 +633,7 @@ pub trait Rectangle: Copy {
             ),
         )
     }
-    /// Map this ractangle to a ractangle of another type using a function
+    /// Map this rectangle to a rectangle of another type using a function
     fn map_with<R, F>(self, mut f: F) -> R
     where
         R: Rectangle,
@@ -601,6 +643,10 @@ pub trait Rectangle: Copy {
             R::Vector::new(f(self.left()), f(self.top())),
             R::Vector::new(f(self.width()), f(self.height())),
         )
+    }
+    /// Get the absolute size
+    fn abs_size(self) -> Self::Vector {
+        Self::Vector::new(self.size().x().abs(), self.size().y().abs())
     }
     /// Get the top-right corner position
     fn top_right(self) -> Self::Vector {
@@ -613,6 +659,33 @@ pub trait Rectangle: Copy {
     /// Get the bottom-right corner position
     fn bottom_right(self) -> Self::Vector {
         self.top_left().add(self.size())
+    }
+    /// Get the absolute top-left corner position
+    fn abs_top_left(self) -> Self::Vector {
+        let tl = self.top_left();
+        let size = self.size();
+        Self::Vector::new(
+            tl.x().minn(tl.x() + size.x()),
+            tl.y().minn(tl.y() + size.y()),
+        )
+    }
+    /// Get the absolute top-right corner position
+    fn abs_top_right(self) -> Self::Vector {
+        Self::Vector::new(
+            self.abs_top_left().x() + self.abs_size().x(),
+            self.abs_top_left().y(),
+        )
+    }
+    /// Get the absolute bottom-left corner position
+    fn abs_bottom_left(self) -> Self::Vector {
+        Self::Vector::new(
+            self.abs_top_left().x(),
+            self.abs_top_left().y() + self.abs_size().y(),
+        )
+    }
+    /// Get the absolute bottom-right corner position
+    fn abs_bottom_right(self) -> Self::Vector {
+        self.abs_top_left().add(self.abs_size())
     }
     /// Get the top y
     fn top(self) -> Self::Scalar {
@@ -630,6 +703,22 @@ pub trait Rectangle: Copy {
     fn right(self) -> Self::Scalar {
         self.top_left().x() + self.size().x()
     }
+    /// Get the absolute top y
+    fn abs_top(self) -> Self::Scalar {
+        self.abs_top_left().y()
+    }
+    /// Get the absolute bottom y
+    fn abs_bottom(self) -> Self::Scalar {
+        self.abs_top_left().y() + self.abs_size().y()
+    }
+    /// Get the absolute left x
+    fn abs_left(self) -> Self::Scalar {
+        self.abs_top_left().x()
+    }
+    /// Get the absolute right x
+    fn abs_right(self) -> Self::Scalar {
+        self.abs_top_left().x() + self.abs_size().x()
+    }
     /// Get the width
     fn width(self) -> Self::Scalar {
         self.size().x()
@@ -637,6 +726,14 @@ pub trait Rectangle: Copy {
     /// Get the height
     fn height(self) -> Self::Scalar {
         self.size().y()
+    }
+    /// Get the absolute width
+    fn abs_width(self) -> Self::Scalar {
+        self.abs_size().x()
+    }
+    /// Get the absolute height
+    fn abs_height(self) -> Self::Scalar {
+        self.abs_size().y()
     }
     /// Get the position of the center
     fn center(self) -> Self::Vector {
@@ -669,6 +766,36 @@ pub trait Rectangle: Copy {
     /// Get the rectangle that is this one with a vector-scaled size
     fn scaled2(self, scale: Self::Vector) -> Self {
         self.with_size(self.size().mul2(scale))
+    }
+    /// Get an iterator over the rectangle's four corners
+    fn corners(self) -> vec::IntoIter<Self::Vector> {
+        vec![
+            self.top_left(),
+            self.top_right(),
+            self.bottom_right(),
+            self.bottom_left(),
+        ]
+        .into_iter()
+    }
+    /// Check that the rectangle contains the given point
+    fn contains(self, point: Self::Vector) -> bool {
+        let in_x_bounds = self.left() <= point.x() && point.x() <= self.right();
+        let in_y_bounds = self.top() <= point.y() && point.y() <= self.bottom();
+        in_x_bounds && in_y_bounds
+    }
+    /// Check that the rectangle contains all points
+    fn contains_all<I>(self, points: I) -> bool
+    where
+        I: IntoIterator<Item = Self::Vector>,
+    {
+        points.into_iter().all(|point| self.contains(point))
+    }
+    /// Check that the rectangle contains any point
+    fn contains_any<I>(self, points: I) -> bool
+    where
+        I: IntoIterator<Item = Self::Vector>,
+    {
+        points.into_iter().any(|point| self.contains(point))
     }
 }
 
