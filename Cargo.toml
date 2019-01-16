@@ -4,7 +4,7 @@
 authors = ['Kai Schmidt <kaikaliischmidt@gmail.com>']
 categories = [
     'rust-patterns',
-    'alogrithms',
+    'algorithms',
 ]
 description = 'Traits for doing 2D vector geometry operations using standard types'
 documentation = 'https://docs.rs/vector2math/'
