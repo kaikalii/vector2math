@@ -70,7 +70,22 @@ assert_eq!(24, rect.area());
 assert!(rect.contains([3, 5]));
 ```
 
-Both vector and rectangle types can be easily mapped to different types:
+A few types can be used to define circles:
+* `([T; 2], T)`
+* `((T, T), T)`
+* Any pair of types where the first implements `FloatingVector2` and the second is the vector's scalar type.
+```
+use vector2math::*;
+use std::f64;
+
+let circle = ([2.0, 3.0], 4.0);
+assert!((circle.circumference() - 25.132_741_228_718_345).abs() < f64::EPSILON);
+assert!((circle.area() - 50.265_482_457_436_69).abs() < f64::EPSILON);
+assert!(circle.contains([0.0, 1.0]));
+assert!(!circle.contains([5.0, 6.0]));
+```
+
+Vector, rectangle, and circle types can be easily mapped to different types:
 ```
 use vector2math::*;
 
@@ -85,9 +100,13 @@ let normal_rectf32: [f32; 4] = weird_rect.map();
 let normal_rectf64: [f32; 4] = normal_rectf32.map();
 let normal_rectu8: [u8; 4] = normal_rectf32.map_with(|f| f as u8);
 assert_eq!([0, 1, 2, 5], normal_rectu8);
+
+let pair_circlef32 = ((0.0, 1.0), 2.0);
+let array_circlef32 = ([0.0, 1.0], 2.0);
+assert_eq!(((0.0, 1.0), 2.0), array_circlef32.map::<((f64, f64), f64)>());
 ```
 
-Implementing `Vector2` and `Rectangle` traits for your own types is simple.
+Implementing these traits for your own types is simple.
 Just make sure that your type is `Copy`
 ```
 use vector2math::*;
@@ -433,11 +452,16 @@ impl<T> Scalar for T where
 pub trait FloatingScalar:
     Scalar + Pow<Self, Output = Self> + Sin<Output = Self> + Cos<Output = Self>
 {
+    /// The value of Pi
+    const PI: Self;
 }
 
-impl<T> FloatingScalar for T where
-    T: Scalar + Pow<Self, Output = Self> + Sin<Output = T> + Cos<Output = T>
-{
+impl FloatingScalar for f32 {
+    const PI: Self = std::f32::consts::PI;
+}
+
+impl FloatingScalar for f64 {
+    const PI: Self = std::f64::consts::PI;
 }
 
 /// Trait for manipulating 2D vectors
@@ -814,5 +838,118 @@ where
     }
     fn size(self) -> Self::Vector {
         self.second()
+    }
+}
+
+/// Trait for manipulating circles
+pub trait Circle: Copy {
+    /// The scalar type
+    type Scalar: FloatingScalar;
+    /// The vector type
+    type Vector: FloatingVector2<Scalar = Self::Scalar>;
+    /// Create a new circle from a center coordinate and a radius
+    fn new(center: Self::Vector, radius: Self::Scalar) -> Self;
+    /// Get the circle's center
+    fn center(self) -> Self::Vector;
+    /// Get the circle's radius
+    fn radius(self) -> Self::Scalar;
+    /// Map this circle to a circle of another type
+    fn map<C>(self) -> C
+    where
+        C: Circle,
+        C::Scalar: From<Self::Scalar>,
+    {
+        C::new(
+            C::Vector::new(
+                C::Scalar::from(self.center().x()),
+                C::Scalar::from(self.center().y()),
+            ),
+            C::Scalar::from(self.radius()),
+        )
+    }
+    /// Map this circle to a circle of another type using a function
+    fn map_with<C, F>(self, mut f: F) -> C
+    where
+        C: Circle,
+        F: FnMut(Self::Scalar) -> <<C as Circle>::Vector as Vector2>::Scalar,
+    {
+        C::new(
+            C::Vector::new(f(self.center().x()), f(self.center().y())),
+            f(self.radius()),
+        )
+    }
+    /// Transform the circle into one with a different top-left corner position
+    fn with_center(self, center: Self::Vector) -> Self {
+        Self::new(center, self.radius())
+    }
+    /// Transform the circle into one with a different size
+    fn with_radius(self, radius: Self::Scalar) -> Self {
+        Self::new(self.center(), radius)
+    }
+    /// Get the circle's diameter
+    fn diameter(self) -> Self::Scalar {
+        self.radius() * Self::Scalar::TWO
+    }
+    /// Get the circle's circumference
+    fn circumference(self) -> Self::Scalar {
+        self.diameter() * Self::Scalar::PI
+    }
+    /// Get the circle's area
+    fn area(self) -> Self::Scalar {
+        self.radius().pow(Self::Scalar::TWO) * Self::Scalar::PI
+    }
+    /// Get the circle that is this one translated by some vector
+    fn translated(self, offset: Self::Vector) -> Self {
+        self.with_center(self.center().add(offset))
+    }
+    /// Get the circle that is this one with a scalar-scaled size
+    fn scaled(self, scale: Self::Scalar) -> Self {
+        self.with_radius(self.radius() * scale)
+    }
+    /// Get the smallest square that this circle fits inside
+    fn to_square<R>(self) -> R
+    where
+        R: Rectangle<Scalar = Self::Scalar, Vector = Self::Vector>,
+    {
+        R::new(
+            self.center().sub(R::Vector::square(self.radius())),
+            R::Vector::square(self.radius() * R::Scalar::TWO),
+        )
+    }
+    /// Check that the circle contains the given point
+    fn contains(self, point: Self::Vector) -> bool {
+        self.center().dist(point) <= self.radius().abs()
+    }
+    /// Check that the circle contains all points
+    fn contains_all<I>(self, points: I) -> bool
+    where
+        I: IntoIterator<Item = Self::Vector>,
+    {
+        points.into_iter().all(|point| self.contains(point))
+    }
+    /// Check that the circle contains any point
+    fn contains_any<I>(self, points: I) -> bool
+    where
+        I: IntoIterator<Item = Self::Vector>,
+    {
+        points.into_iter().any(|point| self.contains(point))
+    }
+}
+
+impl<S, V> Circle for (V, S)
+where
+    S: FloatingScalar,
+    V: FloatingVector2<Scalar = S>,
+{
+    type Scalar = S;
+    type Vector = V;
+    fn new(center: Self::Vector, radius: Self::Scalar) -> Self {
+        (center, radius)
+    }
+    fn center(self) -> Self::Vector {
+        self.0
+    }
+    fn radius(self) -> Self::Scalar {
+        self.1
     }
 }
