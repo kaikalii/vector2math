@@ -433,6 +433,10 @@ pub trait Scalar:
             other
         }
     }
+    /// Create a square `Vector` from this `Scalar`
+    fn square(self) -> [Self; 2] {
+        Vector2::square(self)
+    }
 }
 
 impl<T> Scalar for T where
@@ -643,6 +647,10 @@ pub trait Rectangle: Copy {
     fn centered(center: Self::Vector, size: Self::Vector) -> Self {
         Self::new(center.sub(size.div(Self::Scalar::TWO)), size)
     }
+    /// Create a new square from a top-left corner position and a side length
+    fn square_centered(center: Self::Vector, side_length: Self::Scalar) -> Self {
+        Self::centered(center, Self::Vector::square(side_length))
+    }
     /// Map this rectangle to a rectangle of another type
     fn map<R>(self) -> R
     where
@@ -766,6 +774,10 @@ pub trait Rectangle: Copy {
     /// Transform the rectangle into one with a different top-left corner position
     fn with_top_left(self, top_left: Self::Vector) -> Self {
         Self::new(top_left, self.size())
+    }
+    /// Transform the rectangle into one with a different center position
+    fn with_center(self, center: Self::Vector) -> Self {
+        Self::centered(center, self.size())
     }
     /// Transform the rectangle into one with a different size
     fn with_size(self, size: Self::Vector) -> Self {
