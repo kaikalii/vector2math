@@ -458,14 +458,18 @@ pub trait FloatingScalar:
 {
     /// The value of Pi
     const PI: Self;
+    /// The epsilon value
+    const EPSILON: Self;
 }
 
 impl FloatingScalar for f32 {
     const PI: Self = std::f32::consts::PI;
+    const EPSILON: Self = std::f32::EPSILON;
 }
 
 impl FloatingScalar for f64 {
     const PI: Self = std::f64::consts::PI;
+    const EPSILON: Self = std::f64::EPSILON;
 }
 
 /// Trait for manipulating 2D vectors
@@ -588,7 +592,12 @@ where
     }
     /// Get the unit vector
     fn unit(self) -> Self {
-        self.div(self.mag())
+        let mag = self.mag();
+        if mag < Self::Scalar::EPSILON {
+            Self::new(Self::Scalar::ZERO, Self::Scalar::ZERO)
+        } else {
+            self.div(mag)
+        }
     }
     /// Rotate the vector some number of radians about a pivot
     fn rotate_about<V>(self, pivot: V, radians: Self::Scalar) -> Self
