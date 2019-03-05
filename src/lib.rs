@@ -586,6 +586,10 @@ where
         (self.x().pow(Self::Scalar::TWO) + self.y().pow(Self::Scalar::TWO))
             .pow(Self::Scalar::ONE / Self::Scalar::TWO)
     }
+    /// Get the unit vector
+    fn unit(self) -> Self {
+        self.div(self.mag())
+    }
     /// Rotate the vector some number of radians about a pivot
     fn rotate_about<V>(self, pivot: V, radians: Self::Scalar) -> Self
     where
