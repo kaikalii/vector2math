@@ -433,6 +433,10 @@ pub trait Scalar:
             other
         }
     }
+    /// Create a square `Vector` from this `Scalar`
+    fn square(self) -> [Self; 2] {
+        Vector2::square(self)
+    }
 }
 
 impl<T> Scalar for T where
@@ -454,14 +458,18 @@ pub trait FloatingScalar:
 {
     /// The value of Pi
     const PI: Self;
+    /// The epsilon value
+    const EPSILON: Self;
 }
 
 impl FloatingScalar for f32 {
     const PI: Self = std::f32::consts::PI;
+    const EPSILON: Self = std::f32::EPSILON;
 }
 
 impl FloatingScalar for f64 {
     const PI: Self = std::f64::consts::PI;
+    const EPSILON: Self = std::f64::EPSILON;
 }
 
 /// Trait for manipulating 2D vectors
@@ -582,6 +590,15 @@ where
         (self.x().pow(Self::Scalar::TWO) + self.y().pow(Self::Scalar::TWO))
             .pow(Self::Scalar::ONE / Self::Scalar::TWO)
     }
+    /// Get the unit vector
+    fn unit(self) -> Self {
+        let mag = self.mag();
+        if mag < Self::Scalar::EPSILON {
+            Self::new(Self::Scalar::ZERO, Self::Scalar::ZERO)
+        } else {
+            self.div(mag)
+        }
+    }
     /// Rotate the vector some number of radians about a pivot
     fn rotate_about<V>(self, pivot: V, radians: Self::Scalar) -> Self
     where
@@ -642,6 +659,10 @@ pub trait Rectangle: Copy {
     /// Create a new rectangle from a center position and a size
     fn centered(center: Self::Vector, size: Self::Vector) -> Self {
         Self::new(center.sub(size.div(Self::Scalar::TWO)), size)
+    }
+    /// Create a new square from a top-left corner position and a side length
+    fn square_centered(center: Self::Vector, side_length: Self::Scalar) -> Self {
+        Self::centered(center, Self::Vector::square(side_length))
     }
     /// Map this rectangle to a rectangle of another type
     fn map<R>(self) -> R
@@ -766,6 +787,10 @@ pub trait Rectangle: Copy {
     /// Transform the rectangle into one with a different top-left corner position
     fn with_top_left(self, top_left: Self::Vector) -> Self {
         Self::new(top_left, self.size())
+    }
+    /// Transform the rectangle into one with a different center position
+    fn with_center(self, center: Self::Vector) -> Self {
+        Self::centered(center, self.size())
     }
     /// Transform the rectangle into one with a different size
     fn with_size(self, size: Self::Vector) -> Self {
