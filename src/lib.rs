@@ -803,8 +803,8 @@ pub trait Rectangle: Copy {
     }
     /// Check that the rectangle contains the given point
     fn contains(self, point: Self::Vector) -> bool {
-        let in_x_bounds = self.left() <= point.x() && point.x() <= self.right();
-        let in_y_bounds = self.top() <= point.y() && point.y() <= self.bottom();
+        let in_x_bounds = self.abs_left() <= point.x() && point.x() <= self.abs_right();
+        let in_y_bounds = self.abs_top() <= point.y() && point.y() <= self.abs_bottom();
         in_x_bounds && in_y_bounds
     }
     /// Check that the rectangle contains all points
