@@ -639,6 +639,17 @@ assert_eq!(pos_size.right(), pos_size.abs_right());
 
 let neg_size = [1, 2, -3, -4];
 assert_ne!(neg_size.right(), neg_size.abs_right());
+
+let points = vec![
+    [-1, 0],
+    [1, 5],
+    [3, 2],
+];
+let bounding_rect: [i32; 4] = Rectangle::bounding(points).unwrap();
+assert_eq!(
+    bounding_rect,
+    [-1, 0, 4, 5]
+);
 ```
 */
 pub trait Rectangle: Copy {
@@ -845,6 +856,26 @@ pub trait Rectangle: Copy {
         I: IntoIterator<Item = Self::Vector>,
     {
         points.into_iter().any(|point| self.contains(point))
+    }
+    /// Get the smallest rectangle that contains all the points
+    ///
+    /// Returns `None` if the iterator is empty
+    fn bounding<I>(points: I) -> Option<Self>
+    where
+        I: IntoIterator<Item = Self::Vector>,
+    {
+        let mut points = points.into_iter();
+        if let Some(first) = points.next() {
+            let mut tl = first;
+            let mut br = first;
+            for point in points {
+                tl = Self::Vector::new(tl.x().minn(point.x()), tl.y().minn(point.y()));
+                br = Self::Vector::new(br.x().maxx(point.x()), br.y().maxx(point.y()));
+            }
+            Some(Self::new(tl, br.sub(tl)))
+        } else {
+            None
+        }
     }
 }
 
