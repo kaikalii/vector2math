@@ -494,6 +494,24 @@ pub trait Vector2: Copy {
     {
         V::new(V::Scalar::from(self.x()), V::Scalar::from(self.y()))
     }
+    /// Map this vector to a `[f32;2]`
+    ///
+    /// This is an alias for Vector2::map::<[f32;2]>() that is more concise
+    fn map_f32(self) -> [f32; 2]
+    where
+        f32: From<Self::Scalar>,
+    {
+        self.map()
+    }
+    /// Map this vector to a `[f64;2]`
+    ///
+    /// This is an alias for Vector2::map::<[f64;2]>() that is more concise
+    fn map_f64(self) -> [f64; 2]
+    where
+        f64: From<Self::Scalar>,
+    {
+        self.map()
+    }
     /// Map this vector to a vector of another type using a function
     fn map_with<V, F>(self, mut f: F) -> V
     where
@@ -688,6 +706,24 @@ pub trait Rectangle: Copy {
                 R::Scalar::from(self.height()),
             ),
         )
+    }
+    /// Map this rectangle to a `[f32;4]`
+    ///
+    /// This is an alias for `Rectangle::map::<[f32;4]>()` that is more concise
+    fn map_f32(self) -> [f32; 4]
+    where
+        f32: From<Self::Scalar>,
+    {
+        self.map()
+    }
+    /// Map this rectangle to a `[f64;4]`
+    ///
+    /// This is an alias for `Rectangle::map::<[f64;4]>()` that is more concise
+    fn map_f64(self) -> [f64; 4]
+    where
+        f64: From<Self::Scalar>,
+    {
+        self.map()
     }
     /// Map this rectangle to a rectangle of another type using a function
     fn map_with<R, F>(self, mut f: F) -> R
