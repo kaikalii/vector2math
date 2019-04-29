@@ -482,6 +482,14 @@ pub trait Vector2: Copy {
     fn y(self) -> Self::Scalar;
     /// Create a new vector from an x and y component
     fn new(x: Self::Scalar, y: Self::Scalar) -> Self;
+    /// Set the x component
+    fn set_x(&mut self, x: Self::Scalar) {
+        *self = Vector2::new(x, self.y())
+    }
+    /// Set the y component
+    fn set_y(&mut self, y: Self::Scalar) {
+        *self = Vector2::new(self.x(), y)
+    }
     /// Create a new square vector
     fn square(s: Self::Scalar) -> Self {
         Self::new(s, s)
