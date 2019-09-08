@@ -161,6 +161,8 @@ use std::{
     vec,
 };
 
+pub use Rectangle as _;
+
 /// Trait for defining a pair of items of the same type.
 ///
 /// This trait is meant to generalize having two similar things.
@@ -1019,6 +1021,12 @@ pub trait Circle: Copy {
     /// Check that the circle contains the given point
     fn contains(self, point: Self::Vector) -> bool {
         self.center().dist(point) <= self.radius().abs()
+    }
+    /// Alias for `Rectangle::contains`
+    ///
+    /// Useful when `contains` is ambiguous
+    fn cntains(self, point: Self::Vector) -> bool {
+        self.contains(point)
     }
     /// Check that the circle contains all points
     fn contains_all<I>(self, points: I) -> bool
