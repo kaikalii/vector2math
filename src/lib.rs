@@ -37,6 +37,7 @@ assert_eq!((12, -3), b.mul(3));
 assert_eq!((8, -6), b.mul2(a));
 assert_eq!([1, 3], a.div(2));
 assert_eq!([0, -6], a.div2(b));
+assert_eq!(2, a.dot(b));
 ```
 
 Floating-point vectors have additional operations:
@@ -93,7 +94,7 @@ let arrayf32: [f32; 2] = [1.0, 2.0];
 let arrayf64: [f64; 2] = arrayf32.map();
 let pairf64: (f64, f64) = arrayf64.map();
 let arrayi16: [i16; 2] = pairf64.map_with(|f| f as i16);
-assert_eq!(arrayf32, arrayi16.map::<[f32; 2]>());
+assert_eq!(arrayf32, arrayi16.map_f32());
 
 let weird_rect = [(0.0, 1.0), (2.0, 5.0)];
 let normal_rectf32: [f32; 4] = weird_rect.map();
@@ -161,7 +162,7 @@ use std::{
     vec,
 };
 
-pub use Rectangle as _;
+pub use Rectangle as Rect;
 
 /// Trait for defining a pair of items of the same type.
 ///
@@ -187,10 +188,10 @@ where
 {
     type Item = T;
     fn first(self) -> Self::Item {
-        self.0.clone()
+        self.0
     }
     fn second(self) -> Self::Item {
-        self.1.clone()
+        self.1
     }
     fn from_items(a: Self::Item, b: Self::Item) -> Self {
         (a, b)
@@ -219,10 +220,10 @@ where
 {
     type Item = (T, T);
     fn first(self) -> Self::Item {
-        (self.0.clone(), self.1.clone())
+        (self.0, self.1)
     }
     fn second(self) -> Self::Item {
-        (self.2.clone(), self.3.clone())
+        (self.2, self.3)
     }
     fn from_items(a: Self::Item, b: Self::Item) -> Self {
         (a.0, a.1, b.0, b.1)
@@ -573,13 +574,28 @@ pub trait Vector2: Copy {
     {
         Self::new(self.x() / other.x(), self.y() / other.y())
     }
-    /// Get the value of the dimmension with the higher magnitude
+    /// Get the value of the dimension with the higher magnitude
     fn max_dim(self) -> Self::Scalar {
         if self.x().abs() > self.y().abs() {
             self.x()
         } else {
             self.y()
         }
+    }
+    /// Get the value of the dimension with the lower magnitude
+    fn min_dim(self) -> Self::Scalar {
+        if self.x().abs() < self.y().abs() {
+            self.x()
+        } else {
+            self.y()
+        }
+    }
+    /// Get the dot product of this vector and another
+    fn dot<V>(self, other: V) -> Self::Scalar
+    where
+        V: Vector2<Scalar = Self::Scalar>,
+    {
+        self.x() * other.x() + self.y() * other.y()
     }
 }
 
@@ -657,8 +673,8 @@ Because the primary expected use for this crate is in 2D graphics and alignment 
 a coordinate system where the positive Y direction is "down" is assumed.
 
 # Note
-Methods of the form `abs_` account for the case where the size if negative.
-If the size is not negative, they are identical to their non-`abs_` counterparts.
+Methods of the form `abs_*` account for the case where the size is negative.
+If the size is not negative, they are identical to their non-`abs_*` counterparts.
 ```
 use vector2math::*;
 
@@ -883,11 +899,11 @@ pub trait Rectangle: Copy {
         ]
         .into_iter()
     }
-    /// Check that the rectangle contains the given point
+    /// Check that the rectangle contains the given point. Includes edges.
     fn contains(self, point: Self::Vector) -> bool {
         let in_x_bounds = self.abs_left() <= point.x() && point.x() < self.abs_right();
-        let in_y_bounds = self.abs_top() <= point.y() && point.y() < self.abs_bottom();
-        in_x_bounds && in_y_bounds
+        let in_y_bounds = || self.abs_top() <= point.y() && point.y() < self.abs_bottom();
+        in_x_bounds && in_y_bounds()
     }
     /// Check that the rectangle contains all points
     fn contains_all<I>(self, points: I) -> bool
