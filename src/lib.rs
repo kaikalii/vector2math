@@ -491,6 +491,10 @@ pub trait FloatingScalar:
     const PI: Self;
     /// The epsilon value
     const EPSILON: Self;
+    /// Linear interpolate the scalar with another
+    fn lerp(self, other: Self, t: Self) -> Self {
+        (Self::ONE - t) * self + t * other
+    }
 }
 
 impl FloatingScalar for f32 {
@@ -684,6 +688,13 @@ where
             origin_point.x() * sin + origin_point.y() * cos,
         );
         rotated_point.add(pivot)
+    }
+    /// Linear interpolate the vector with another
+    fn lerp<V>(self, other: V, t: Self::Scalar) -> Self
+    where
+        V: Vector2<Scalar = Self::Scalar>,
+    {
+        Self::new(self.x().lerp(other.x(), t), self.y().lerp(other.y(), t))
     }
 }
 
