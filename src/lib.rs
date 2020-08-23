@@ -901,8 +901,8 @@ pub trait Rectangle: Copy {
     }
     /// Check that the rectangle contains the given point. Includes edges.
     fn contains(self, point: Self::Vector) -> bool {
-        let in_x_bounds = self.abs_left() <= point.x() && point.x() < self.abs_right();
-        let in_y_bounds = || self.abs_top() <= point.y() && point.y() < self.abs_bottom();
+        let in_x_bounds = self.abs_left() <= point.x() && point.x() <= self.abs_right();
+        let in_y_bounds = || self.abs_top() <= point.y() && point.y() <= self.abs_bottom();
         in_x_bounds && in_y_bounds()
     }
     /// Check that the rectangle contains all points
@@ -1113,5 +1113,16 @@ where
     }
     fn radius(self) -> Self::Scalar {
         self.1
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn margins() {
+        let rect = [0, 0, 8, 8];
+        assert!(rect.contains([1, 1]));
+        assert!(!rect.inner_margin(2).contains([1, 1]));
     }
 }
