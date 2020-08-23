@@ -2,21 +2,13 @@
 
 [package]
 authors = ['Kai Schmidt <kaikaliischmidt@gmail.com>']
-categories = [
-    'rust-patterns',
-    'algorithms',
-]
+categories = ['rust-patterns', 'algorithms']
 description = 'Traits for doing 2D vector geometry operations using standard types'
 documentation = 'https://docs.rs/vector2math/'
 edition = '2018'
-keywords = [
-    'math',
-    'geometry',
-    'vector',
-    '2D',
-]
+keywords = ['math', 'geometry', 'vector', '2D']
 license = 'MIT'
 name = 'vector2math'
 readme = 'readme.md'
 repository = 'https://github.com/kaikalii/vector2math'
-version = '0.7.0'
+version = '0.8.0'
