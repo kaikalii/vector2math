@@ -162,7 +162,35 @@ use std::{
     vec,
 };
 
-pub use Rectangle as Rect;
+pub use Rectangle as _;
+
+/// Module containing standard f32 types
+///
+/// Import the contents of this module if your project uses `f32`s in geometry
+pub mod f32 {
+    /// The scalar type used by this module
+    pub type Dim = f32;
+    /// A standard 2D vector type
+    pub type Vec2 = [Dim; 2];
+    /// A standard rectangle type
+    pub type Rect = [Dim; 4];
+    /// A standard circle type
+    pub type Circ = ([Dim; 2], Dim);
+}
+
+/// Module containing standard f64 types
+///
+/// Import the contents of this module if your project uses `f64`s in geometry
+pub mod f64 {
+    /// The scalar type used by this module
+    pub type Dim = f64;
+    /// A standard 2D vector type
+    pub type Vec2 = [Dim; 2];
+    /// A standard rectangle type
+    pub type Rect = [Dim; 4];
+    /// A standard circle type
+    pub type Circ = ([Dim; 2], Dim);
+}
 
 /// Trait for defining a pair of items of the same type.
 ///
