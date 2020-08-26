@@ -981,16 +981,12 @@ pub trait Rectangle: Copy {
     /// Get the rectangle that is inside this one with the given
     /// margin on all sides
     fn inner_margin(self, margin: Self::Scalar) -> Self {
-        Self::new(
-            self.abs_top_left().add(margin.square()),
-            self.abs_size().sub((margin * Self::Scalar::TWO).square()),
-        )
+        self.inner_margins([margin; 4])
     }
     /// Get the rectangle that is inside this one with the given margins
     ///
     /// Margins should be ordered `[left, right, top, bottom]`
-    fn inner_margins(self, margins: [Self::Scalar; 4]) -> Self {
-        let [left, right, top, bottom] = margins;
+    fn inner_margins(self, [left, right, top, bottom]: [Self::Scalar; 4]) -> Self {
         Self::new(
             self.abs_top_left().add(Self::Vector::new(left, top)),
             self.abs_size()
@@ -1000,16 +996,12 @@ pub trait Rectangle: Copy {
     /// Get the rectangle that is outside this one with the given
     /// margin on all sides
     fn outer_margin(self, margin: Self::Scalar) -> Self {
-        Self::new(
-            self.abs_top_left().sub(margin.square()),
-            self.abs_size().sub((margin * Self::Scalar::TWO).square()),
-        )
+        self.outer_margins([margin; 4])
     }
     /// Get the rectangle that is outside this one with the given margins
     ///
     /// Margins should be ordered `[left, right, top, bottom]`
-    fn outer_margins(self, margins: [Self::Scalar; 4]) -> Self {
-        let [left, right, top, bottom] = margins;
+    fn outer_margins(self, [left, right, top, bottom]: [Self::Scalar; 4]) -> Self {
         Self::new(
             self.abs_top_left().sub(Self::Vector::new(left, top)),
             self.abs_size()
