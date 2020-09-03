@@ -197,7 +197,7 @@ pub mod f64 {
 /// This trait is meant to generalize having two similar things.
 /// It is implemented for `(T, T)` and `[T; 2]` with `Item = T`.
 /// However, because a pair does not necessarily have to be an
-/// Actual *pair* It is also implemented for `(T, T, T, T)` and
+/// actual *pair* It is also implemented for `(T, T, T, T)` and
 /// `[T; 4]` with `Item = (T, T)` and `Item = [T; 2]` respectively.
 pub trait Pair {
     /// The type of the pair's item
