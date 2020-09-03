@@ -274,47 +274,41 @@ where
     }
 }
 
-/// Trait for getting the sine of a number
-pub trait Sin {
-    /// The output type
-    type Output;
-    /// Get the sine
-    fn sin(self) -> Self::Output;
-}
-
-impl Sin for f32 {
-    type Output = f32;
-    fn sin(self) -> Self::Output {
-        f32::sin(self)
-    }
-}
-
-impl Sin for f64 {
-    type Output = f64;
-    fn sin(self) -> Self::Output {
-        f64::sin(self)
-    }
-}
-
-/// Trait for getting the cosine of a number
-pub trait Cos {
-    /// The output type
-    type Output;
+/// Trait for trigonometric operations
+pub trait Trig: Copy + Div<Output = Self> {
     /// Get the cosine
-    fn cos(self) -> Self::Output;
+    fn cos(self) -> Self;
+    /// Get the sine
+    fn sin(self) -> Self;
+    /// Get the tangent
+    fn tan(self) -> Self {
+        self.sin() / self.cos()
+    }
+    /// Get the four-quadrant arctangent
+    fn atan2(self, other: Self) -> Self;
 }
 
-impl Cos for f32 {
-    type Output = f32;
-    fn cos(self) -> Self::Output {
+impl Trig for f32 {
+    fn cos(self) -> Self {
         f32::cos(self)
     }
+    fn sin(self) -> Self {
+        f32::sin(self)
+    }
+    fn atan2(self, other: Self) -> Self {
+        self.atan2(other)
+    }
 }
 
-impl Cos for f64 {
-    type Output = f64;
-    fn cos(self) -> Self::Output {
+impl Trig for f64 {
+    fn cos(self) -> Self {
         f64::cos(self)
+    }
+    fn sin(self) -> Self {
+        f64::sin(self)
+    }
+    fn atan2(self, other: Self) -> Self {
+        self.atan2(other)
     }
 }
 
@@ -484,16 +478,26 @@ impl<T> Scalar for T where
 }
 
 /// Trait for floating-point scalar numbers
-pub trait FloatingScalar:
-    Scalar + Pow<Self, Output = Self> + Sin<Output = Self> + Cos<Output = Self>
-{
+pub trait FloatingScalar: Scalar + Pow<Self, Output = Self> + Trig {
     /// The value of Pi
     const PI: Self;
     /// The epsilon value
     const EPSILON: Self;
+    /// Get the value of Tau, or 2π
+    fn tau() -> Self {
+        Self::PI * Self::TWO
+    }
     /// Linear interpolate the scalar with another
     fn lerp(self, other: Self, t: Self) -> Self {
         (Self::ONE - t) * self + t * other
+    }
+    /// Get the unit vector corresponding to an angle in radians defined by the scalar
+    fn angle_as_vector(self) -> [Self; 2] {
+        [self.cos(), self.sin()]
+    }
+    /// Check if the value is within its epsilon range
+    fn is_zero(self) -> bool {
+        self.abs() < Self::EPSILON
     }
 }
 
@@ -524,6 +528,14 @@ pub trait Vector2: Copy {
     /// Set the y component
     fn set_y(&mut self, y: Self::Scalar) {
         *self = Vector2::new(self.x(), y)
+    }
+    /// Get this vector with a different x component
+    fn with_x(self, x: Self::Scalar) -> Self {
+        Self::new(x, self.y())
+    }
+    /// Get this vector with a different y component
+    fn with_y(self, y: Self::Scalar) -> Self {
+        Self::new(self.x(), y)
     }
     /// Create a new square vector
     fn square(s: Self::Scalar) -> Self {
@@ -695,6 +707,11 @@ where
         V: Vector2<Scalar = Self::Scalar>,
     {
         Self::new(self.x().lerp(other.x(), t), self.y().lerp(other.y(), t))
+    }
+    /// Get the arctangent of the vector, which corresponds to
+    /// the angle it represents bounded between -π to π
+    fn atan(self) -> Self::Scalar {
+        self.y().atan2(self.x())
     }
 }
 
