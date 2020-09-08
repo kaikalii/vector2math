@@ -1,5 +1,3 @@
-use std::vec;
-
 use crate::{Abs, Pair, Scalar, Vector2, ZeroOneTwo};
 
 /**
@@ -225,15 +223,44 @@ pub trait Rectangle: Copy {
     fn scaled2(self, scale: Self::Vector) -> Self {
         self.with_size(self.size().mul2(scale))
     }
-    /// Get an iterator over the rectangle's four corners
-    fn corners(self) -> vec::IntoIter<Self::Vector> {
-        vec![
+    /// Get the rectangle that is this one with a translated left-bound
+    ///
+    /// Bounds on other sides stay the same
+    fn move_left_bound(self, dx: Self::Scalar) -> Self {
+        Self::new(
+            self.top_left().with_x(self.left() + dx),
+            self.size().with_x(self.width() - dx),
+        )
+    }
+    /// Get the rectangle that is this one with a translated right-bound
+    ///
+    /// Bounds on other sides stay the same
+    fn move_right_bound(self, dx: Self::Scalar) -> Self {
+        Self::new(self.top_left(), self.size().with_x(self.width() + dx))
+    }
+    /// Get the rectangle that is this one with a translated top-bound
+    ///
+    /// Bounds on other sides stay the same
+    fn move_top_bound(self, dy: Self::Scalar) -> Self {
+        Self::new(
+            self.top_left().with_y(self.top() + dy),
+            self.size().with_y(self.height() - dy),
+        )
+    }
+    /// Get the rectangle that is this one with a translated bottom-bound
+    ///
+    /// Bounds on other sides stay the same
+    fn move_bottom_bound(self, dy: Self::Scalar) -> Self {
+        Self::new(self.top_left(), self.size().with_y(self.height() + dy))
+    }
+    /// Get an array the rectangle's four corners, clockwise from top-left
+    fn corners(self) -> [Self::Vector; 4] {
+        [
             self.top_left(),
             self.top_right(),
             self.bottom_right(),
             self.bottom_left(),
         ]
-        .into_iter()
     }
     /// Check that the rectangle contains the given point. Includes edges.
     fn contains(self, point: Self::Vector) -> bool {

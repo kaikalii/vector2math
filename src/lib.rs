@@ -91,6 +91,12 @@ assert_eq!([3, 5], rect.center());
 assert_eq!(20, rect.perimeter());
 assert_eq!(24, rect.area());
 assert!(rect.contains([3, 5]));
+assert_eq!([1, 2, 2, 6], rect.move_right_bound(-2));
+let corners = rect.corners();
+assert_eq!(corners[0], [1, 2]);
+assert_eq!(corners[1], [5, 2]);
+assert_eq!(corners[2], [5, 8]);
+assert_eq!(corners[3], [1, 8]);
 ```
 
 # Circles
