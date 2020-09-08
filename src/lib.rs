@@ -1,4 +1,4 @@
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 #![deny(unsafe_code)]
 
 /*!
@@ -163,7 +163,7 @@ macro_rules! mods {
     };
 }
 
-mods!(circle, group, rectangle, scalar);
+mods!(circle, group, rectangle, scalar, transform);
 
 use std::ops::Neg;
 
@@ -334,10 +334,10 @@ where
 {
     type Scalar = P::Item;
     fn x(self) -> P::Item {
-        self.first()
+        self.to_pair().0
     }
     fn y(self) -> P::Item {
-        self.second()
+        self.to_pair().1
     }
     fn new(x: P::Item, y: P::Item) -> Self {
         Self::from_items(x, y)
@@ -396,6 +396,13 @@ where
     /// the angle it represents bounded between -π to π
     fn atan(self) -> Self::Scalar {
         self.y().atan2(self.x())
+    }
+    /// Apply a transform to the vector
+    fn transform<T>(self, transform: T) -> Self
+    where
+        T: Transform<Scalar = Self::Scalar>,
+    {
+        transform.apply(self)
     }
 }
 

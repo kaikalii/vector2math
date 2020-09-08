@@ -1,0 +1,102 @@
+use std::ops::{Add, Mul};
+
+use crate::{FloatingScalar, Pair, Scalar, Trig, Trio, Vector2, ZeroOneTwo};
+
+/**
+Trait for defining vector transformations
+
+Transforms should be able to be chained without allocating
+extra space. The standard way to do this is with a matrix.
+For transforming 2D vectors, a 2×3 matrix can be used.
+*/
+pub trait Transform: Sized {
+    /// The scalar type
+    type Scalar: FloatingScalar;
+    /// Chain this transform with another
+    fn then(self, next: Self) -> Self;
+    /// Apply this transform to a vector
+    fn apply<V>(self, vector: V) -> V
+    where
+        V: Vector2<Scalar = Self::Scalar>;
+    /// Create a translation from an offset vector
+    fn translate<V>(offset: V) -> Self
+    where
+        V: Vector2<Scalar = Self::Scalar>;
+    /// Create a rotation from a radian angle
+    fn rotate(radians: Self::Scalar) -> Self;
+    /// Create a scaling from a ratio vector
+    fn scale<V>(ratio: V) -> Self
+    where
+        V: Vector2<Scalar = Self::Scalar>;
+    /// Create a uniform scaling from a ratio
+    fn zoom(ratio: Self::Scalar) -> Self {
+        Self::scale(ratio.square())
+    }
+}
+
+impl<M, C> Transform for M
+where
+    M: Pair<Item = C>,
+    C: Trio + Copy,
+    C::Item: FloatingScalar,
+{
+    type Scalar = C::Item;
+    fn then(self, next: Self) -> Self {
+        let (a1, a2) = self.to_pair();
+        let (b1, b2) = next.to_pair();
+        let (a11, a12, a13) = a1.to_trio();
+        let (a21, a22, a23) = a2.to_trio();
+        let (b11, b12, b13) = b1.to_trio();
+        let (b21, b22, b23) = b2.to_trio();
+        M::from_items(
+            C::from_items(
+                a11 * b11 + a12 * b21,
+                a11 * b12 + a12 * b22,
+                a11 * b13 + a12 * b23 + a13,
+            ),
+            C::from_items(
+                a21 * b11 + a22 * b21,
+                a21 * b12 + a22 * b22,
+                a21 * b13 + a22 * b23 + a23,
+            ),
+        )
+    }
+    fn apply<V>(self, vector: V) -> V
+    where
+        V: Vector2<Scalar = Self::Scalar>,
+    {
+        let vtrio = C::from_items(vector.x(), vector.y(), V::Scalar::ONE);
+        let (a, b) = self.to_pair();
+        let xp: C = a.pairwise(vtrio, Mul::mul);
+        let yp: C = b.pairwise(vtrio, Mul::mul);
+        let x = xp.iter().fold(Self::Scalar::ZERO, Add::add);
+        let y = yp.iter().fold(Self::Scalar::ZERO, Add::add);
+        V::new(x, y)
+    }
+    fn translate<V>(v: V) -> Self
+    where
+        V: Vector2<Scalar = Self::Scalar>,
+    {
+        M::from_items(
+            C::from_items(C::Item::ONE, C::Item::ZERO, v.x()),
+            C::from_items(C::Item::ZERO, C::Item::ONE, v.y()),
+        )
+    }
+    fn rotate(radians: Self::Scalar) -> Self {
+        let c = radians.cos();
+        let s = radians.sin();
+        M::from_items(
+            C::from_items(c, -s, C::Item::ZERO),
+            C::from_items(s, c, C::Item::ZERO),
+        )
+    }
+    fn scale<V>(ratio: V) -> Self
+    where
+        V: Vector2<Scalar = Self::Scalar>,
+    {
+        M::from_items(
+            C::from_items(ratio.x(), C::Item::ZERO, C::Item::ZERO),
+            C::from_items(C::Item::ZERO, ratio.y(), C::Item::ZERO),
+        )
+    }
+}

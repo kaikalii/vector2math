@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use crate::Vector2;
 
@@ -206,7 +206,7 @@ impl<T> Scalar for T where
 }
 
 /// Trait for floating-point scalar numbers
-pub trait FloatingScalar: Scalar + Pow<Self, Output = Self> + Trig {
+pub trait FloatingScalar: Scalar + Neg<Output = Self> + Pow<Self, Output = Self> + Trig {
     /// The value of Pi
     const PI: Self;
     /// The epsilon value

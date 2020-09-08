@@ -1,31 +1,48 @@
-/// Trait for defining a pair of items of the same type.
-///
-/// This trait is meant to generalize having two similar things.
-/// It is implemented for `(T, T)` and `[T; 2]` with `Item = T`.
-/// However, because a pair does not necessarily have to be an
-/// actual *pair* It is also implemented for `(T, T, T, T)` and
-/// `[T; 4]` with `Item = (T, T)` and `Item = [T; 2]` respectively.
-pub trait Pair {
+use std::iter::{once, Chain, Once};
+
+/// An iterator over two items
+pub type Chain2<T> = Chain<Once<T>, Once<T>>;
+/// An iterator over three items
+pub type Chain3<T> = Chain<Chain<Once<T>, Once<T>>, Once<T>>;
+
+/**
+Trait for defining a pair of items of the same type.
+
+This trait is meant to generalize having two similar things.
+It is implemented for `(T, T)` and `[T; 2]` with `Item = T`.
+However, because a pair does not necessarily have to be an
+actual *pair* It is also implemented for `(T, T, T, T)` and
+`[T; 4]` with `Item = (T, T)` and `Item = [T; 2]` respectively.
+*/
+pub trait Pair: Sized {
     /// The type of the pair's item
     type Item;
-    /// Get the first thing
-    fn first(self) -> Self::Item;
-    /// Get the second thing
-    fn second(self) -> Self::Item;
+    /// Get the pair
+    fn to_pair(self) -> (Self::Item, Self::Item);
     /// Create a pair from two items
     fn from_items(a: Self::Item, b: Self::Item) -> Self;
+    /// Apply a function pairwise to the items of two pairs
+    fn pairwise<O, P, F, R>(self, other: O, f: F) -> P
+    where
+        O: Pair,
+        P: Pair<Item = R>,
+        F: Fn(Self::Item, O::Item) -> R,
+    {
+        let (a, b) = self.to_pair();
+        let (c, d) = other.to_pair();
+        P::from_items(f(a, c), f(b, d))
+    }
+    /// Get an iterator over the pair's items
+    fn iter(self) -> Chain2<Self::Item> {
+        let (a, b) = self.to_pair();
+        once(a).chain(once(b))
+    }
 }
 
-impl<T> Pair for (T, T)
-where
-    T: Clone,
-{
+impl<T> Pair for (T, T) {
     type Item = T;
-    fn first(self) -> Self::Item {
-        self.0
-    }
-    fn second(self) -> Self::Item {
-        self.1
+    fn to_pair(self) -> (Self::Item, Self::Item) {
+        self
     }
     fn from_items(a: Self::Item, b: Self::Item) -> Self {
         (a, b)
@@ -34,30 +51,21 @@ where
 
 impl<T> Pair for [T; 2]
 where
-    T: Clone,
+    T: Copy,
 {
     type Item = T;
-    fn first(self) -> Self::Item {
-        self[0].clone()
-    }
-    fn second(self) -> Self::Item {
-        self[1].clone()
+    fn to_pair(self) -> (Self::Item, Self::Item) {
+        (self[0], self[1])
     }
     fn from_items(a: Self::Item, b: Self::Item) -> Self {
         [a, b]
     }
 }
 
-impl<T> Pair for (T, T, T, T)
-where
-    T: Clone,
-{
+impl<T> Pair for (T, T, T, T) {
     type Item = (T, T);
-    fn first(self) -> Self::Item {
-        (self.0, self.1)
-    }
-    fn second(self) -> Self::Item {
-        (self.2, self.3)
+    fn to_pair(self) -> (Self::Item, Self::Item) {
+        ((self.0, self.1), (self.2, self.3))
     }
     fn from_items(a: Self::Item, b: Self::Item) -> Self {
         (a.0, a.1, b.0, b.1)
@@ -66,54 +74,56 @@ where
 
 impl<T> Pair for [T; 4]
 where
-    T: Clone,
+    T: Copy,
 {
     type Item = [T; 2];
-    fn first(self) -> Self::Item {
-        [self[0].clone(), self[1].clone()]
-    }
-    fn second(self) -> Self::Item {
-        [self[2].clone(), self[3].clone()]
+    fn to_pair(self) -> (Self::Item, Self::Item) {
+        ([self[0], self[1]], [self[2], self[3]])
     }
     fn from_items(a: Self::Item, b: Self::Item) -> Self {
-        [a[0].clone(), a[1].clone(), b[0].clone(), b[1].clone()]
+        [a[0], a[1], b[0], b[1]]
     }
 }
 
-/// Trait for defining a group of 3 items of the same type.
-///
-/// This trait is meant to generalize having three similar things.
-/// It is implemented for `(T, T, T)` and `[T; 3]` with `Item = T`.
-/// However, because a trio does not necessarily have to be an
-/// actual tuple It is also implemented for `(T, T, T, T, T, T)` and
-/// `[T; 6]` with `Item = (T, T, T)` and `Item = [T; 3]` respectively.
+/**
+Trait for defining a group of 3 items of the same type.
 
-pub trait Trio {
+This trait is meant to generalize having three similar things.
+It is implemented for `(T, T, T)` and `[T; 3]` with `Item = T`.
+However, because a trio does not necessarily have to be an
+actual tuple It is also implemented for `(T, T, T, T, T, T)` and
+`[T; 6]` with `Item = (T, T, T)` and `Item = [T; 3]` respectively.
+*/
+
+pub trait Trio: Sized {
     /// The type of the trio's item
     type Item;
-    /// Get the first thing
-    fn first(self) -> Self::Item;
-    /// Get the second thing
-    fn second(self) -> Self::Item;
-    /// Get the third thing
-    fn third(self) -> Self::Item;
+    /// Get the trio
+    fn to_trio(self) -> (Self::Item, Self::Item, Self::Item);
     /// Create a trio from three items
     fn from_items(a: Self::Item, b: Self::Item, c: Self::Item) -> Self;
+    /// Apply a function pairwise to the items of two trios
+    fn pairwise<O, T, F, R>(self, other: O, ff: F) -> T
+    where
+        O: Trio,
+        T: Trio<Item = R>,
+        F: Fn(Self::Item, O::Item) -> R,
+    {
+        let (a, b, c) = self.to_trio();
+        let (d, e, f) = other.to_trio();
+        T::from_items(ff(a, d), ff(b, e), ff(c, f))
+    }
+    /// Get an iterator over the trio's items
+    fn iter(self) -> Chain3<Self::Item> {
+        let (a, b, c) = self.to_trio();
+        once(a).chain(once(b)).chain(once(c))
+    }
 }
 
-impl<T> Trio for (T, T, T)
-where
-    T: Clone,
-{
+impl<T> Trio for (T, T, T) {
     type Item = T;
-    fn first(self) -> Self::Item {
-        self.0
-    }
-    fn second(self) -> Self::Item {
-        self.1
-    }
-    fn third(self) -> Self::Item {
-        self.2
+    fn to_trio(self) -> (Self::Item, Self::Item, Self::Item) {
+        self
     }
     fn from_items(a: Self::Item, b: Self::Item, c: Self::Item) -> Self {
         (a, b, c)
@@ -122,36 +132,21 @@ where
 
 impl<T> Trio for [T; 3]
 where
-    T: Clone,
+    T: Copy,
 {
     type Item = T;
-    fn first(self) -> Self::Item {
-        self[0].clone()
-    }
-    fn second(self) -> Self::Item {
-        self[1].clone()
-    }
-    fn third(self) -> Self::Item {
-        self[1].clone()
+    fn to_trio(self) -> (Self::Item, Self::Item, Self::Item) {
+        (self[0], self[1], self[2])
     }
     fn from_items(a: Self::Item, b: Self::Item, c: Self::Item) -> Self {
         [a, b, c]
     }
 }
 
-impl<T> Trio for (T, T, T, T, T, T)
-where
-    T: Clone,
-{
+impl<T> Trio for (T, T, T, T, T, T) {
     type Item = (T, T);
-    fn first(self) -> Self::Item {
-        (self.0, self.1)
-    }
-    fn second(self) -> Self::Item {
-        (self.2, self.3)
-    }
-    fn third(self) -> Self::Item {
-        (self.4, self.5)
+    fn to_trio(self) -> (Self::Item, Self::Item, Self::Item) {
+        ((self.0, self.1), (self.2, self.3), (self.4, self.5))
     }
     fn from_items(a: Self::Item, b: Self::Item, c: Self::Item) -> Self {
         (a.0, a.1, b.0, b.1, c.0, c.1)
@@ -160,26 +155,13 @@ where
 
 impl<T> Trio for [T; 6]
 where
-    T: Clone,
+    T: Copy,
 {
     type Item = [T; 2];
-    fn first(self) -> Self::Item {
-        [self[0].clone(), self[1].clone()]
-    }
-    fn second(self) -> Self::Item {
-        [self[2].clone(), self[3].clone()]
-    }
-    fn third(self) -> Self::Item {
-        [self[4].clone(), self[5].clone()]
+    fn to_trio(self) -> (Self::Item, Self::Item, Self::Item) {
+        ([self[0], self[1]], [self[2], self[3]], [self[4], self[5]])
     }
     fn from_items(a: Self::Item, b: Self::Item, c: Self::Item) -> Self {
-        [
-            a[0].clone(),
-            a[1].clone(),
-            b[0].clone(),
-            b[1].clone(),
-            c[0].clone(),
-            c[1].clone(),
-        ]
+        [a[0], a[1], b[0], b[1], c[0], c[1]]
     }
 }

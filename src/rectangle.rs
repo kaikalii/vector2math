@@ -318,9 +318,9 @@ where
         Self::from_items(top_left, size)
     }
     fn top_left(self) -> Self::Vector {
-        self.first()
+        self.to_pair().0
     }
     fn size(self) -> Self::Vector {
-        self.second()
+        self.to_pair().1
     }
 }
