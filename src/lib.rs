@@ -1,5 +1,5 @@
 #![warn(missing_docs)]
-#![deny(unsafe_code)]
+#![cfg_attr(feature = "simd", feature(doc_cfg))]
 
 /*!
 This crate provides traits for doing 2D vector geometry operations using standard types
@@ -39,21 +39,19 @@ Vectors can be of the following forms:
 * `(T, T)`
 * Any type that implements [`Vector2`](trait.Vector2.html)
 
-Many 2D Vector operations are supported. Vectors do not necessarily need
-to be the same type to allow operation. They need only have the same `Scalar` type.
-The output type will be the same as the first argument.
+Many 2D Vector operations are supported.
 ```
 use vector2math::*;
 
 let a = [2, 6];
-let b = (4, -1);
+let b = [4, -1];
 assert_eq!(2, a.x());
 assert_eq!(-1, b.y());
 assert_eq!([-2, -6], a.neg());
 assert_eq!([6, 5], a.add(b));
 assert_eq!([-2, 7], a.sub(b));
-assert_eq!((12, -3), b.mul(3));
-assert_eq!((8, -6), b.mul2(a));
+assert_eq!([12, -3], b.mul(3));
+assert_eq!([8, -6], b.mul2(a));
 assert_eq!([1, 3], a.div(2));
 assert_eq!([0, -6], a.div2(b));
 assert_eq!(2, a.dot(b));
@@ -224,6 +222,10 @@ macro_rules! mods {
     };
 }
 
+#[cfg(feature = "simd")]
+#[cfg_attr(feature = "simd", doc(cfg(feature = "simd")))]
+pub mod simd;
+
 mods!(circle, group, rectangle, scalar, transform);
 
 macro_rules! int_mod {
@@ -345,43 +347,55 @@ pub trait Vector2: Copy {
     where
         Self::Scalar: Neg<Output = Self::Scalar>,
     {
-        Self::new(-self.x(), -self.y())
+        Self::square(Self::Scalar::ZERO).sub(self)
     }
-    /// Add the vector to another
-    fn add<V>(self, other: V) -> Self
-    where
-        V: Vector2<Scalar = Self::Scalar>,
-    {
+    /// Add this vector to another
+    fn add(self, other: Self) -> Self {
         Self::new(self.x() + other.x(), self.y() + other.y())
     }
     /// Subtract another vector from this one
-    fn sub<V>(self, other: V) -> Self
-    where
-        V: Vector2<Scalar = Self::Scalar>,
-    {
+    fn sub(self, other: Self) -> Self {
         Self::new(self.x() - other.x(), self.y() - other.y())
     }
     /// Multiply this vector by a scalar
     fn mul(self, by: Self::Scalar) -> Self {
-        Self::new(self.x() * by, self.y() * by)
+        self.mul2(Self::square(by))
     }
     /// Multiply this vector component-wise by another
-    fn mul2<V>(self, other: V) -> Self
-    where
-        V: Vector2<Scalar = Self::Scalar>,
-    {
+    fn mul2(self, other: Self) -> Self {
         Self::new(self.x() * other.x(), self.y() * other.y())
     }
     /// Divide this vector by a scalar
     fn div(self, by: Self::Scalar) -> Self {
-        Self::new(self.x() / by, self.y() / by)
+        self.div2(Self::square(by))
     }
     /// Divide this vector component-wise by another
-    fn div2<V>(self, other: V) -> Self
-    where
-        V: Vector2<Scalar = Self::Scalar>,
-    {
+    fn div2(self, other: Self) -> Self {
         Self::new(self.x() / other.x(), self.y() / other.y())
+    }
+    /// Add another vector into this one
+    fn add_assign(&mut self, other: Self) {
+        *self = self.add(other);
+    }
+    /// Subtract another vector into this one
+    fn sub_assign(&mut self, other: Self) {
+        *self = self.sub(other);
+    }
+    /// Multiply a scalar into this vector
+    fn mul_assign(&mut self, by: Self::Scalar) {
+        *self = self.mul(by);
+    }
+    /// Multiply another vector component-wise into this one
+    fn mul2_assign(&mut self, other: Self) {
+        *self = self.mul2(other);
+    }
+    /// Divide a scalar into this vector
+    fn div_assign(&mut self, by: Self::Scalar) {
+        *self = self.div(by);
+    }
+    /// Divide another vector component-wise into this one
+    fn div2_assign(&mut self, other: Self) {
+        *self = self.div2(other);
     }
     /// Get the value of the dimension with the higher magnitude
     fn max_dim(self) -> Self::Scalar {
@@ -431,11 +445,9 @@ where
     Self::Scalar: FloatingScalar,
 {
     /// Get the distance between this vector and another
-    fn dist<V>(self, to: V) -> Self::Scalar
-    where
-        V: Vector2<Scalar = Self::Scalar>,
-    {
-        ((self.x() - to.x()).pow(Self::Scalar::TWO) + (self.y() - to.y()).pow(Self::Scalar::TWO))
+    fn dist(self, to: Self) -> Self::Scalar {
+        let cdiff = self.sub(to);
+        (cdiff.x().pow(Self::Scalar::TWO) + cdiff.y().pow(Self::Scalar::TWO))
             .pow(Self::Scalar::ONE / Self::Scalar::TWO)
     }
     /// Get the vector's magnitude
@@ -454,13 +466,10 @@ where
     }
     /// Rotate the vector some number of radians about the origin
     fn rotate(self, radians: Self::Scalar) -> Self {
-        self.rotate_about(radians, Self::Scalar::ZERO.square())
+        self.rotate_about(radians, Self::square(Self::Scalar::ZERO))
     }
     /// Rotate the vector some number of radians about a pivot
-    fn rotate_about<V>(self, radians: Self::Scalar, pivot: V) -> Self
-    where
-        V: Vector2<Scalar = Self::Scalar>,
-    {
+    fn rotate_about(self, radians: Self::Scalar, pivot: Self) -> Self {
         let sin = radians.sin();
         let cos = radians.cos();
         let origin_point = self.sub(pivot);
@@ -471,11 +480,10 @@ where
         rotated_point.add(pivot)
     }
     /// Linear interpolate the vector with another
-    fn lerp<V>(self, other: V, t: Self::Scalar) -> Self
-    where
-        V: Vector2<Scalar = Self::Scalar>,
-    {
-        Self::new(self.x().lerp(other.x(), t), self.y().lerp(other.y(), t))
+    fn lerp(self, other: Self, t: Self::Scalar) -> Self {
+        Self::square(Self::Scalar::ONE - t)
+            .mul2(self)
+            .sub(Self::square(t).mul2(other))
     }
     /// Get the arctangent of the vector, which corresponds to
     /// the angle it represents bounded between -π to π
@@ -499,23 +507,21 @@ where
 }
 
 #[cfg(test)]
-mod test {
-    use super::*;
-    #[test]
-    fn margins() {
-        let rect = [0, 0, 8, 8];
-        assert!(rect.contains([1, 1]));
-        assert!(!rect.inner_margin(2).contains([1, 1]));
-    }
-    #[test]
-    fn transforms() {
-        let v = [1.0, 3.0];
-        let rot = 1.0;
-        let pivot = [5.0; 2];
-        let transform = f32::Trans::new().rotate_about(rot, pivot);
-        let v1 = v.rotate_about(rot, pivot);
-        let v2 = v.transform(transform);
-        dbg!(v1.dist(v2) / f32::EPSILON);
-        assert!(v1.dist(v2).is_near_zero(10.0));
-    }
+#[test]
+fn margins() {
+    let rect = [0, 0, 8, 8];
+    assert!(rect.contains([1, 1]));
+    assert!(!rect.inner_margin(2).contains([1, 1]));
+}
+#[cfg(test)]
+#[test]
+fn transforms() {
+    let v = [1.0, 3.0];
+    let rot = 1.0;
+    let pivot = [5.0; 2];
+    let transform = f32::Trans::new().rotate_about(rot, pivot);
+    let v1 = v.rotate_about(rot, pivot);
+    let v2 = v.transform(transform);
+    dbg!(v1.dist(v2) / f32::EPSILON);
+    assert!(v1.dist(v2).is_near_zero(10.0));
 }

@@ -187,8 +187,11 @@ pub trait Scalar:
         }
     }
     /// Create a square `Vector` from this `Scalar`
-    fn square(self) -> [Self; 2] {
-        Vector2::square(self)
+    fn square<V>(self) -> V
+    where
+        V: Vector2<Scalar = Self>,
+    {
+        V::square(self)
     }
 }
 

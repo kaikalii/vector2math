@@ -1,6 +1,6 @@
 use std::ops::{Add, Mul};
 
-use crate::{FloatingScalar, Pair, Scalar, Trig, Trio, Vector2, ZeroOneTwo};
+use crate::{FloatingScalar, Pair, Trig, Trio, Vector2, ZeroOneTwo};
 
 /**
 Trait for defining vector transformations
@@ -50,7 +50,7 @@ pub trait Transform: Sized {
     }
     /// Uniformly scale the transform
     fn zoom(self, ratio: Self::Scalar) -> Self {
-        self.scale(ratio.square())
+        self.scale([ratio; 2])
     }
     /// Rotate the transform about a pivot
     fn rotate_about<V>(self, radians: Self::Scalar, pivot: V) -> Self
