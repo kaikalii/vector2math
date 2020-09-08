@@ -207,13 +207,13 @@ impl<T> Scalar for T where
 
 /// Trait for floating-point scalar numbers
 pub trait FloatingScalar: Scalar + Neg<Output = Self> + Pow<Self, Output = Self> + Trig {
-    /// The value of Pi
-    const PI: Self;
+    /// The value of Tau, or 2π
+    const TAU: Self;
     /// The epsilon value
     const EPSILON: Self;
-    /// Get the value of Tau, or 2π
-    fn tau() -> Self {
-        Self::PI * Self::TWO
+    /// Get the value of pi
+    fn pi() -> Self {
+        Self::TAU / Self::TWO
     }
     /// Linear interpolate the scalar with another
     fn lerp(self, other: Self, t: Self) -> Self {
@@ -225,16 +225,20 @@ pub trait FloatingScalar: Scalar + Neg<Output = Self> + Pow<Self, Output = Self>
     }
     /// Check if the value is within its epsilon range
     fn is_zero(self) -> bool {
-        self.abs() < Self::EPSILON
+        self.is_near_zero(Self::ONE)
+    }
+    /// Check if the value is within a multiple epsilon range
+    fn is_near_zero(self, n: Self) -> bool {
+        self.abs() < Self::EPSILON * n
     }
 }
 
 impl FloatingScalar for f32 {
-    const PI: Self = std::f32::consts::PI;
+    const TAU: Self = std::f32::consts::PI * 2.0;
     const EPSILON: Self = std::f32::EPSILON;
 }
 
 impl FloatingScalar for f64 {
-    const PI: Self = std::f64::consts::PI;
+    const TAU: Self = std::f64::consts::PI * 2.0;
     const EPSILON: Self = std::f64::EPSILON;
 }

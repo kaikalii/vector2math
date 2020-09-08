@@ -51,11 +51,11 @@ pub trait Circle: Copy {
     }
     /// Get the circle's circumference
     fn circumference(self) -> Self::Scalar {
-        self.diameter() * Self::Scalar::PI
+        self.radius() * Self::Scalar::TAU
     }
     /// Get the circle's area
     fn area(self) -> Self::Scalar {
-        self.radius().pow(Self::Scalar::TWO) * Self::Scalar::PI
+        self.radius().pow(Self::Scalar::TWO) * Self::Scalar::pi()
     }
     /// Get the circle that is this one translated by some vector
     fn translated(self, offset: Self::Vector) -> Self {

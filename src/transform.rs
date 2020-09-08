@@ -12,6 +12,8 @@ For transforming 2D vectors, a 2×3 matrix can be used.
 pub trait Transform: Sized {
     /// The scalar type
     type Scalar: FloatingScalar;
+    /// Create a new identity transform
+    fn new() -> Self;
     /// Chain this transform with another
     fn then(self, next: Self) -> Self;
     /// Apply this transform to a vector
@@ -19,18 +21,43 @@ pub trait Transform: Sized {
     where
         V: Vector2<Scalar = Self::Scalar>;
     /// Create a translation from an offset vector
-    fn translate<V>(offset: V) -> Self
+    fn new_translate<V>(offset: V) -> Self
     where
         V: Vector2<Scalar = Self::Scalar>;
     /// Create a rotation from a radian angle
-    fn rotate(radians: Self::Scalar) -> Self;
+    fn new_rotate(radians: Self::Scalar) -> Self;
     /// Create a scaling from a ratio vector
-    fn scale<V>(ratio: V) -> Self
+    fn new_scale<V>(ratio: V) -> Self
     where
         V: Vector2<Scalar = Self::Scalar>;
-    /// Create a uniform scaling from a ratio
-    fn zoom(ratio: Self::Scalar) -> Self {
-        Self::scale(ratio.square())
+    /// Translate the transform
+    fn translate<V>(self, offset: V) -> Self
+    where
+        V: Vector2<Scalar = Self::Scalar>,
+    {
+        self.then(Self::new_translate(offset))
+    }
+    /// Rotate the transform
+    fn rotate(self, radians: Self::Scalar) -> Self {
+        self.then(Self::new_rotate(radians))
+    }
+    /// Scale the transform
+    fn scale<V>(self, ratio: V) -> Self
+    where
+        V: Vector2<Scalar = Self::Scalar>,
+    {
+        self.then(Self::new_scale(ratio))
+    }
+    /// Uniformly scale the transform
+    fn zoom(self, ratio: Self::Scalar) -> Self {
+        self.scale(ratio.square())
+    }
+    /// Rotate the transform about a pivot
+    fn rotate_about<V>(self, radians: Self::Scalar, pivot: V) -> Self
+    where
+        V: Vector2<Scalar = Self::Scalar>,
+    {
+        self.translate(pivot.neg()).rotate(radians).translate(pivot)
     }
 }
 
@@ -41,9 +68,15 @@ where
     C::Item: FloatingScalar,
 {
     type Scalar = C::Item;
+    fn new() -> Self {
+        M::from_items(
+            C::from_items(C::Item::ONE, C::Item::ZERO, C::Item::ZERO),
+            C::from_items(C::Item::ZERO, C::Item::ONE, C::Item::ZERO),
+        )
+    }
     fn then(self, next: Self) -> Self {
-        let (a1, a2) = self.to_pair();
-        let (b1, b2) = next.to_pair();
+        let (a1, a2) = next.to_pair();
+        let (b1, b2) = self.to_pair();
         let (a11, a12, a13) = a1.to_trio();
         let (a21, a22, a23) = a2.to_trio();
         let (b11, b12, b13) = b1.to_trio();
@@ -73,7 +106,7 @@ where
         let y = yp.iter().fold(Self::Scalar::ZERO, Add::add);
         V::new(x, y)
     }
-    fn translate<V>(v: V) -> Self
+    fn new_translate<V>(v: V) -> Self
     where
         V: Vector2<Scalar = Self::Scalar>,
     {
@@ -82,7 +115,7 @@ where
             C::from_items(C::Item::ZERO, C::Item::ONE, v.y()),
         )
     }
-    fn rotate(radians: Self::Scalar) -> Self {
+    fn new_rotate(radians: Self::Scalar) -> Self {
         let c = radians.cos();
         let s = radians.sin();
         M::from_items(
@@ -90,7 +123,7 @@ where
             C::from_items(s, c, C::Item::ZERO),
         )
     }
-    fn scale<V>(ratio: V) -> Self
+    fn new_scale<V>(ratio: V) -> Self
     where
         V: Vector2<Scalar = Self::Scalar>,
     {

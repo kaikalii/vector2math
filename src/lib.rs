@@ -4,7 +4,7 @@
 /*!
 This crate provides traits for doing 2D vector geometry operations using standard types
 
-# Usage
+# Scalars
 
 Simple vector math is implemented for vectors with the following scalar types:
 * `u8`-`u128`
@@ -13,12 +13,31 @@ Simple vector math is implemented for vectors with the following scalar types:
 * `isize`
 * `f32`
 * `f64`
-* Any type that implements one or more of this crate's `Scalar` traits
+* Any type that implements [`Scalar`](trait.Scalar.html)
+
+`f32` and `f64` implement [`FloatingScalar`](trait.FloatingScalar.html), which
+gives some additional operations only applicable to floating-point numbers.
+
+Each scalar type has an associated module that has type definitions for standard
+geometric types using that scalar.
+
+For example, instead of writing
+```
+# use vector2math::*;
+let square = <[f32; 4]>::square([0.0; 2], 1.0);
+```
+You can instead write
+```
+# use vector2math::*;
+let square = f32::Rect::square([0.0; 2], 1.0);
+```
+
+# Vectors
 
 Vectors can be of the following forms:
 * `[T; 2]`
 * `(T, T)`
-* Any type that implements one or more of this crate's `Vector2` traits
+* Any type that implements [`Vector2`](trait.Vector2.html)
 
 Many 2D Vector operations are supported. Vectors do not necessarily need
 to be the same type to allow operation. They need only have the same `Scalar` type.
@@ -40,16 +59,18 @@ assert_eq!([0, -6], a.div2(b));
 assert_eq!(2, a.dot(b));
 ```
 
-Floating-point vectors have additional operations:
+Vectors that implement [`FloatingVector2`](trait.FloatingVector2.html) have additional operations:
 ```
 use vector2math::*;
 
 assert_eq!(5.0, [3.0, 4.0].mag());
 assert_eq!(10.0, [-1.0, -2.0].dist([5.0, 6.0]));
-let rotation_calculation = [1.0, 0.0].rotate_about([0.0; 2], std::f64::consts::PI / 4.0);
+let rotation_calculation = [1.0, 0.0].rotate_about(f64::TAU / 8.0, [0.0; 2]);
 let rotation_solution = [2f64.powf(0.5) / 2.0; 2];
 assert!(rotation_calculation.sub(rotation_solution).mag() < std::f64::EPSILON);
 ```
+
+# Rectangles
 
 Many types can be used to define axis-aligned rectangles:
 * `[[T; 2]; 2]`
@@ -58,7 +79,8 @@ Many types can be used to define axis-aligned rectangles:
 * `([T; 2], [T; 2])`
 * `[T; 4]`
 * `(T, T, T, T)`
-* Any type that implements this crate's `Pair` trait where the associated `Item` type implements `Vector2`.
+* Any type that implements [`Pair`](trait.Pair.html) where the associated
+[`Item`](trait.Pair.html#associatedtype.Item) type implements [`Vector2`](trait.Vector2.html).
 ```
 use vector2math::*;
 
@@ -71,10 +93,13 @@ assert_eq!(24, rect.area());
 assert!(rect.contains([3, 5]));
 ```
 
+# Circles
+
 A few types can be used to define circles:
 * `([T; 2], T)`
 * `((T, T), T)`
-* Any pair of types where the first implements `FloatingVector2` and the second is the vector's scalar type.
+* Any pair of types where the first implements [`FloatingVector2`](trait.FloatingVector2.html)
+and the second is the vector's [`Scalar`](trait.Vector2.html#associatedtype.Scalar) type.
 ```
 use vector2math::*;
 use std::f64;
@@ -85,6 +110,8 @@ assert!((circle.area() - 50.265_482_457_436_69).abs() < f64::EPSILON);
 assert!(circle.contains([0.0, 1.0]));
 assert!(!circle.contains([5.0, 6.0]));
 ```
+
+# Mapping
 
 Vector, rectangle, and circle types can be easily mapped to different types:
 ```
@@ -98,7 +125,7 @@ assert_eq!(arrayf32, arrayi16.map_f32());
 
 let weird_rect = [(0.0, 1.0), (2.0, 5.0)];
 let normal_rectf32: [f32; 4] = weird_rect.map();
-let normal_rectf64: [f32; 4] = normal_rectf32.map();
+let normal_rectf64: [f64; 4] = normal_rectf32.map();
 let normal_rectu8: [u8; 4] = normal_rectf32.map_with(|f| f as u8);
 assert_eq!([0, 1, 2, 5], normal_rectu8);
 
@@ -107,8 +134,36 @@ let array_circlef32 = ([0.0, 1.0], 2.0);
 assert_eq!(((0.0, 1.0), 2.0), array_circlef32.map::<((f64, f64), f64)>());
 ```
 
+# Transforms
+
+The [`Transform`](trait.Transform.html) trait is used to define 2D vector transforms.
+This crate implements [`Transform`](trait.Transform.html) for all types that implement
+[`Pair`](trait.Pair.html) where the [`Pair`](trait.Pair.html)'s
+[`Item`](trait.Pair.html#associatedtype.Item) implments [`Trio`](trait.Trio.html)
+where the [`Trio`](trait.Trio.html)'s [`Item`](trait.Trio.html#associatedtype.Item)
+implements [`FloatingScalar`](trait.FloatingScalar.html). This type range includes
+everything from `[[f32; 3]; 2]` to `(f64, f64, f64, f64, f64, f64)`.
+[`Transform`](trait.Transform.html)s can be chained and applied to vectors.
+```
+use vector2math::*;
+
+let dis = [1.0; 2];
+let rot = f32::TAU / 4.0;
+let sc = [2.0; 2];
+
+let transform = f32::Trans::new().translate(dis).rotate(rot).scale(sc);
+
+let v = [3.0, 5.0];
+let v1 = v.transform(transform);
+let v2 = v.add(dis).rotate(rot).mul2(sc);
+
+assert_eq!(v1, v2);
+```
+
+# Implementing traits
+
 Implementing these traits for your own types is simple.
-Just make sure that your type is `Copy`
+Just make sure that your type is [`Copy`](https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html).
 ```
 use vector2math::*;
 
@@ -165,35 +220,55 @@ macro_rules! mods {
 
 mods!(circle, group, rectangle, scalar, transform);
 
+macro_rules! int_mod {
+    ($T:ident) => {
+        /// Standard geometric types for a scalar type
+        pub mod $T {
+            /// A dimension type
+            pub type Dim = $T;
+            /// A standard 2D vector type
+            pub type Vec2 = [Dim; 2];
+            /// A standard rectangle type
+            pub type Rect = [Dim; 4];
+        }
+    };
+}
+
+int_mod!(u8);
+int_mod!(u16);
+int_mod!(u32);
+int_mod!(u64);
+int_mod!(u128);
+int_mod!(usize);
+int_mod!(i8);
+int_mod!(i16);
+int_mod!(i32);
+int_mod!(i64);
+int_mod!(i128);
+int_mod!(isize);
+
+macro_rules! float_mod {
+    ($T:ident) => {
+        /// Standard geometric types for a scalar type
+        pub mod $T {
+            /// A dimension type
+            pub type Dim = $T;
+            /// A standard 2D vector type
+            pub type Vec2 = [Dim; 2];
+            /// A standard rectangle type
+            pub type Rect = [Dim; 4];
+            /// A standard circle type
+            pub type Circ = (Vec2, Dim);
+            /// A standard transform type
+            pub type Trans = [Dim; 6];
+        }
+    };
+}
+
+float_mod!(f32);
+float_mod!(f64);
+
 use std::ops::Neg;
-
-/// Module containing standard f32 types
-///
-/// Import the contents of this module if your project uses `f32`s in geometry
-pub mod f32 {
-    /// A standard dimension type
-    pub type Dim = f32;
-    /// A standard 2D vector type
-    pub type Vec2 = [Dim; 2];
-    /// A standard rectangle type
-    pub type Rect = [Dim; 4];
-    /// A standard circle type
-    pub type Circ = ([Dim; 2], Dim);
-}
-
-/// Module containing standard f64 types
-///
-/// Import the contents of this module if your project uses `f64`s in geometry
-pub mod f64 {
-    /// A standard dimension type
-    pub type Dim = f64;
-    /// A standard 2D vector type
-    pub type Vec2 = [Dim; 2];
-    /// A standard rectangle type
-    pub type Rect = [Dim; 4];
-    /// A standard circle type
-    pub type Circ = ([Dim; 2], Dim);
-}
 
 /// Trait for manipulating 2D vectors
 pub trait Vector2: Copy {
@@ -371,10 +446,14 @@ where
             self.div(mag)
         }
     }
+    /// Rotate the vector some number of radians about the origin
+    fn rotate(self, radians: Self::Scalar) -> Self {
+        self.rotate_about(radians, Self::Scalar::ZERO.square())
+    }
     /// Rotate the vector some number of radians about a pivot
-    fn rotate_about<V>(self, pivot: V, radians: Self::Scalar) -> Self
+    fn rotate_about<V>(self, radians: Self::Scalar, pivot: V) -> Self
     where
-        V: Vector2<Scalar = Self::Scalar> + Clone,
+        V: Vector2<Scalar = Self::Scalar>,
     {
         let sin = radians.sin();
         let cos = radians.cos();
@@ -421,5 +500,16 @@ mod test {
         let rect = [0, 0, 8, 8];
         assert!(rect.contains([1, 1]));
         assert!(!rect.inner_margin(2).contains([1, 1]));
+    }
+    #[test]
+    fn transforms() {
+        let v = [1.0, 3.0];
+        let rot = 1.0;
+        let pivot = [5.0; 2];
+        let transform = f32::Trans::new().rotate_about(rot, pivot);
+        let v1 = v.rotate_about(rot, pivot);
+        let v2 = v.transform(transform);
+        dbg!(v1.dist(v2) / f32::EPSILON);
+        assert!(v1.dist(v2).is_near_zero(10.0));
     }
 }

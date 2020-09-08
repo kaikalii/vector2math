@@ -85,6 +85,29 @@ where
     }
 }
 
+impl<T> Pair for (T, T, T, T, T, T) {
+    type Item = (T, T, T);
+    fn to_pair(self) -> (Self::Item, Self::Item) {
+        ((self.0, self.1, self.2), (self.3, self.4, self.5))
+    }
+    fn from_items(a: Self::Item, b: Self::Item) -> Self {
+        (a.0, a.1, a.2, b.0, b.1, b.2)
+    }
+}
+
+impl<T> Pair for [T; 6]
+where
+    T: Copy,
+{
+    type Item = [T; 3];
+    fn to_pair(self) -> (Self::Item, Self::Item) {
+        ([self[0], self[1], self[2]], [self[3], self[4], self[5]])
+    }
+    fn from_items(a: Self::Item, b: Self::Item) -> Self {
+        [a[0], a[1], a[2], b[0], b[1], b[2]]
+    }
+}
+
 /**
 Trait for defining a group of 3 items of the same type.
 
