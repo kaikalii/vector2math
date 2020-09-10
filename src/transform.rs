@@ -102,8 +102,8 @@ where
         let (a, b) = self.to_pair();
         let xp: C = a.pairwise(vtrio, Mul::mul);
         let yp: C = b.pairwise(vtrio, Mul::mul);
-        let x = xp.iter().fold(Self::Scalar::ZERO, Add::add);
-        let y = yp.iter().fold(Self::Scalar::ZERO, Add::add);
+        let x = xp.trio_iter().fold(Self::Scalar::ZERO, Add::add);
+        let y = yp.trio_iter().fold(Self::Scalar::ZERO, Add::add);
         V::new(x, y)
     }
     fn new_translate<V>(v: V) -> Self

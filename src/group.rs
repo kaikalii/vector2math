@@ -33,7 +33,7 @@ pub trait Pair: Sized {
         P::from_items(f(a, c), f(b, d))
     }
     /// Get an iterator over the pair's items
-    fn iter(self) -> Chain2<Self::Item> {
+    fn pair_iter(self) -> Chain2<Self::Item> {
         let (a, b) = self.to_pair();
         once(a).chain(once(b))
     }
@@ -137,7 +137,7 @@ pub trait Trio: Sized {
         T::from_items(ff(a, d), ff(b, e), ff(c, f))
     }
     /// Get an iterator over the trio's items
-    fn iter(self) -> Chain3<Self::Item> {
+    fn trio_iter(self) -> Chain3<Self::Item> {
         let (a, b, c) = self.to_trio();
         once(a).chain(once(b)).chain(once(c))
     }
