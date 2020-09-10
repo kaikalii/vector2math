@@ -483,7 +483,7 @@ where
     fn lerp(self, other: Self, t: Self::Scalar) -> Self {
         Self::square(Self::Scalar::ONE - t)
             .mul2(self)
-            .sub(Self::square(t).mul2(other))
+            .add(Self::square(t).mul2(other))
     }
     /// Get the arctangent of the vector, which corresponds to
     /// the angle it represents bounded between -π to π
