@@ -13,9 +13,13 @@ pub trait Transform: Sized {
     /// The scalar type
     type Scalar: FloatingScalar;
     /// Create a new identity transform
-    fn new() -> Self;
+    fn identity() -> Self;
     /// Chain this transform with another
     fn then(self, next: Self) -> Self;
+    /// Chain another transform with this one
+    fn but_first(self, prev: Self) -> Self {
+        prev.then(self)
+    }
     /// Apply this transform to a vector
     fn apply<V>(self, vector: V) -> V
     where
@@ -68,7 +72,7 @@ where
     C::Item: FloatingScalar,
 {
     type Scalar = C::Item;
-    fn new() -> Self {
+    fn identity() -> Self {
         M::from_items(
             C::from_items(C::Item::ONE, C::Item::ZERO, C::Item::ZERO),
             C::from_items(C::Item::ZERO, C::Item::ONE, C::Item::ZERO),

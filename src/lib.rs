@@ -519,7 +519,7 @@ fn transforms() {
     let v = [1.0, 3.0];
     let rot = 1.0;
     let pivot = [5.0; 2];
-    let transform = f32::Trans::new().rotate_about(rot, pivot);
+    let transform = f32::Trans::identity().rotate_about(rot, pivot);
     let v1 = v.rotate_about(rot, pivot);
     let v2 = v.transform(transform);
     dbg!(v1.dist(v2) / f32::EPSILON);
