@@ -155,7 +155,7 @@ let dis = [1.0; 2];
 let rot = f32::TAU / 4.0;
 let sc = [2.0; 2];
 
-let transform = f32::Trans::new().translate(dis).rotate(rot).scale(sc);
+let transform = f32::Trans::identity().translate(dis).rotate(rot).scale(sc);
 
 let v = [3.0, 5.0];
 let v1 = v.transform(transform);
@@ -268,7 +268,7 @@ macro_rules! float_mod {
             /// A standard circle type
             pub type Circ = (Vec2, Dim);
             /// A standard transform type
-            pub type Trans = [Dim; 6];
+            pub type Trans = [[Dim; 3]; 2];
         }
     };
 }
