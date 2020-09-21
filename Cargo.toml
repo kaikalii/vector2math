@@ -17,7 +17,7 @@ license = 'MIT'
 name = 'vector2math'
 readme = 'readme.md'
 repository = 'https://github.com/kaikalii/vector2math'
-version = '0.10.3'
+version = '0.10.4'
 
 [package.metadata.docs.rs]
 features = ['simd']
