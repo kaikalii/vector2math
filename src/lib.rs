@@ -278,6 +278,10 @@ float_mod!(f64);
 
 use std::ops::Neg;
 
+pub use Circle as _;
+pub use Rectangle as _;
+pub use Transform as _;
+
 /// Trait for manipulating 2D vectors
 pub trait Vector2: Copy {
     /// The scalar type
