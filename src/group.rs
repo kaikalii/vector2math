@@ -41,9 +41,11 @@ pub trait Pair: Sized {
 
 impl<T> Pair for (T, T) {
     type Item = T;
+    #[inline(always)]
     fn to_pair(self) -> (Self::Item, Self::Item) {
         self
     }
+    #[inline(always)]
     fn from_items(a: Self::Item, b: Self::Item) -> Self {
         (a, b)
     }
@@ -54,9 +56,11 @@ where
     T: Copy,
 {
     type Item = T;
+    #[inline(always)]
     fn to_pair(self) -> (Self::Item, Self::Item) {
         (self[0], self[1])
     }
+    #[inline(always)]
     fn from_items(a: Self::Item, b: Self::Item) -> Self {
         [a, b]
     }
@@ -64,9 +68,11 @@ where
 
 impl<T> Pair for (T, T, T, T) {
     type Item = (T, T);
+    #[inline(always)]
     fn to_pair(self) -> (Self::Item, Self::Item) {
         ((self.0, self.1), (self.2, self.3))
     }
+    #[inline(always)]
     fn from_items(a: Self::Item, b: Self::Item) -> Self {
         (a.0, a.1, b.0, b.1)
     }
@@ -77,9 +83,11 @@ where
     T: Copy,
 {
     type Item = [T; 2];
+    #[inline(always)]
     fn to_pair(self) -> (Self::Item, Self::Item) {
         ([self[0], self[1]], [self[2], self[3]])
     }
+    #[inline(always)]
     fn from_items(a: Self::Item, b: Self::Item) -> Self {
         [a[0], a[1], b[0], b[1]]
     }
@@ -87,9 +95,11 @@ where
 
 impl<T> Pair for (T, T, T, T, T, T) {
     type Item = (T, T, T);
+    #[inline(always)]
     fn to_pair(self) -> (Self::Item, Self::Item) {
         ((self.0, self.1, self.2), (self.3, self.4, self.5))
     }
+    #[inline(always)]
     fn from_items(a: Self::Item, b: Self::Item) -> Self {
         (a.0, a.1, a.2, b.0, b.1, b.2)
     }
@@ -100,9 +110,11 @@ where
     T: Copy,
 {
     type Item = [T; 3];
+    #[inline(always)]
     fn to_pair(self) -> (Self::Item, Self::Item) {
         ([self[0], self[1], self[2]], [self[3], self[4], self[5]])
     }
+    #[inline(always)]
     fn from_items(a: Self::Item, b: Self::Item) -> Self {
         [a[0], a[1], a[2], b[0], b[1], b[2]]
     }
@@ -145,9 +157,11 @@ pub trait Trio: Sized {
 
 impl<T> Trio for (T, T, T) {
     type Item = T;
+    #[inline(always)]
     fn to_trio(self) -> (Self::Item, Self::Item, Self::Item) {
         self
     }
+    #[inline(always)]
     fn from_items(a: Self::Item, b: Self::Item, c: Self::Item) -> Self {
         (a, b, c)
     }
@@ -158,9 +172,11 @@ where
     T: Copy,
 {
     type Item = T;
+    #[inline(always)]
     fn to_trio(self) -> (Self::Item, Self::Item, Self::Item) {
         (self[0], self[1], self[2])
     }
+    #[inline(always)]
     fn from_items(a: Self::Item, b: Self::Item, c: Self::Item) -> Self {
         [a, b, c]
     }
@@ -168,9 +184,11 @@ where
 
 impl<T> Trio for (T, T, T, T, T, T) {
     type Item = (T, T);
+    #[inline(always)]
     fn to_trio(self) -> (Self::Item, Self::Item, Self::Item) {
         ((self.0, self.1), (self.2, self.3), (self.4, self.5))
     }
+    #[inline(always)]
     fn from_items(a: Self::Item, b: Self::Item, c: Self::Item) -> Self {
         (a.0, a.1, b.0, b.1, c.0, c.1)
     }
@@ -181,9 +199,11 @@ where
     T: Copy,
 {
     type Item = [T; 2];
+    #[inline(always)]
     fn to_trio(self) -> (Self::Item, Self::Item, Self::Item) {
         ([self[0], self[1]], [self[2], self[3]], [self[4], self[5]])
     }
+    #[inline(always)]
     fn from_items(a: Self::Item, b: Self::Item, c: Self::Item) -> Self {
         [a[0], a[1], b[0], b[1], c[0], c[1]]
     }

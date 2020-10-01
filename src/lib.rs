@@ -313,6 +313,7 @@ pub trait Vector2: Copy {
         Self::new(s, s)
     }
     /// Map this vector to a vector of another type
+    #[inline(always)]
     fn map<V>(self) -> V
     where
         V: Vector2,
@@ -347,6 +348,7 @@ pub trait Vector2: Copy {
         V::new(f(self.x()), f(self.y()))
     }
     /// Negate the vector
+    #[inline(always)]
     fn neg(self) -> Self
     where
         Self::Scalar: Neg<Output = Self::Scalar>,
@@ -354,50 +356,62 @@ pub trait Vector2: Copy {
         Self::square(Self::Scalar::ZERO).sub(self)
     }
     /// Add this vector to another
+    #[inline(always)]
     fn add(self, other: Self) -> Self {
         Self::new(self.x() + other.x(), self.y() + other.y())
     }
     /// Subtract another vector from this one
+    #[inline(always)]
     fn sub(self, other: Self) -> Self {
         Self::new(self.x() - other.x(), self.y() - other.y())
     }
     /// Multiply this vector by a scalar
+    #[inline(always)]
     fn mul(self, by: Self::Scalar) -> Self {
         self.mul2(Self::square(by))
     }
     /// Multiply this vector component-wise by another
+    #[inline(always)]
     fn mul2(self, other: Self) -> Self {
         Self::new(self.x() * other.x(), self.y() * other.y())
     }
     /// Divide this vector by a scalar
+    #[inline(always)]
     fn div(self, by: Self::Scalar) -> Self {
         self.div2(Self::square(by))
     }
     /// Divide this vector component-wise by another
+    #[inline(always)]
     fn div2(self, other: Self) -> Self {
         Self::new(self.x() / other.x(), self.y() / other.y())
     }
     /// Add another vector into this one
+    #[inline(always)]
     fn add_assign(&mut self, other: Self) {
         *self = self.add(other);
     }
     /// Subtract another vector into this one
+    #[inline(always)]
     fn sub_assign(&mut self, other: Self) {
         *self = self.sub(other);
     }
     /// Multiply a scalar into this vector
+    #[inline(always)]
     fn mul_assign(&mut self, by: Self::Scalar) {
         *self = self.mul(by);
     }
     /// Multiply another vector component-wise into this one
+    #[inline(always)]
     fn mul2_assign(&mut self, other: Self) {
         *self = self.mul2(other);
     }
     /// Divide a scalar into this vector
+    #[inline(always)]
     fn div_assign(&mut self, by: Self::Scalar) {
         *self = self.div(by);
     }
     /// Divide another vector component-wise into this one
+    #[inline(always)]
     fn div2_assign(&mut self, other: Self) {
         *self = self.div2(other);
     }
@@ -432,12 +446,15 @@ where
     P::Item: Scalar,
 {
     type Scalar = P::Item;
+    #[inline(always)]
     fn x(self) -> P::Item {
         self.to_pair().0
     }
+    #[inline(always)]
     fn y(self) -> P::Item {
         self.to_pair().1
     }
+    #[inline(always)]
     fn new(x: P::Item, y: P::Item) -> Self {
         Self::from_items(x, y)
     }
@@ -449,17 +466,20 @@ where
     Self::Scalar: FloatingScalar,
 {
     /// Get the distance between this vector and another
+    #[inline(always)]
     fn dist(self, to: Self) -> Self::Scalar {
         let cdiff = self.sub(to);
         (cdiff.x().pow(Self::Scalar::TWO) + cdiff.y().pow(Self::Scalar::TWO))
             .pow(Self::Scalar::ONE / Self::Scalar::TWO)
     }
     /// Get the vector's magnitude
+    #[inline(always)]
     fn mag(self) -> Self::Scalar {
         (self.x().pow(Self::Scalar::TWO) + self.y().pow(Self::Scalar::TWO))
             .pow(Self::Scalar::ONE / Self::Scalar::TWO)
     }
     /// Get the unit vector
+    #[inline(always)]
     fn unit(self) -> Self {
         let mag = self.mag();
         if mag < Self::Scalar::EPSILON {
@@ -484,6 +504,7 @@ where
         rotated_point.add(pivot)
     }
     /// Linear interpolate the vector with another
+    #[inline(always)]
     fn lerp(self, other: Self, t: Self::Scalar) -> Self {
         Self::square(Self::Scalar::ONE - t)
             .mul2(self)
