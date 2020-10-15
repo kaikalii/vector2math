@@ -69,8 +69,8 @@ pub trait Circle: Copy {
     fn to_square(self) -> [Self::Scalar; 4] {
         let radius = self.radius();
         [
-            self.center().x() - radius / Self::Scalar::TWO,
-            self.center().y() - radius / Self::Scalar::TWO,
+            self.center().x() - radius,
+            self.center().y() - radius,
             radius * Self::Scalar::TWO,
             radius * Self::Scalar::TWO,
         ]
