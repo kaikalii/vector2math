@@ -1,7 +1,5 @@
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
-use crate::Vector2;
-
 /// Trait for trigonometric operations
 pub trait Trig: Copy + Div<Output = Self> {
     /// Get the cosine
@@ -185,13 +183,6 @@ pub trait Scalar:
         } else {
             other
         }
-    }
-    /// Create a square `Vector` from this `Scalar`
-    fn square<V>(self) -> V
-    where
-        V: Vector2<Scalar = Self>,
-    {
-        V::square(self)
     }
 }
 

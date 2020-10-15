@@ -54,7 +54,7 @@ pub trait Rectangle: Copy {
         Self::centered(center, Self::Vector::square(side_length))
     }
     /// Map this rectangle to a rectangle of another type
-    fn map<R>(self) -> R
+    fn map_into<R>(self) -> R
     where
         R: Rectangle,
         R::Scalar: From<Self::Scalar>,
@@ -67,23 +67,11 @@ pub trait Rectangle: Copy {
             ),
         )
     }
-    /// Map this rectangle to a `[f32;4]`
+    /// Map this rectangle to a `[Self::Scalar; 4]`
     ///
-    /// This is an alias for `Rectangle::map::<[f32;4]>()` that is more concise
-    fn map_f32(self) -> [f32; 4]
-    where
-        f32: From<Self::Scalar>,
-    {
-        self.map()
-    }
-    /// Map this rectangle to a `[f64;4]`
-    ///
-    /// This is an alias for `Rectangle::map::<[f64;4]>()` that is more concise
-    fn map_f64(self) -> [f64; 4]
-    where
-        f64: From<Self::Scalar>,
-    {
-        self.map()
+    /// This is an alias for `Rectangle::map_into::<[Self::Scalar; 4]>()` that is more concise
+    fn map_rect(self) -> [Self::Scalar; 4] {
+        self.map_into()
     }
     /// Map this rectangle to a rectangle of another type using a function
     fn map_with<R, F>(self, mut f: F) -> R
@@ -222,36 +210,6 @@ pub trait Rectangle: Copy {
     /// Get the rectangle that is this one with a vector-scaled size
     fn scaled2(self, scale: Self::Vector) -> Self {
         self.with_size(self.size().mul2(scale))
-    }
-    /// Get the rectangle that is this one with a translated left-bound
-    ///
-    /// Bounds on other sides stay the same
-    fn move_left_bound(self, dx: Self::Scalar) -> Self {
-        Self::new(
-            self.top_left().with_x(self.left() + dx),
-            self.size().with_x(self.width() - dx),
-        )
-    }
-    /// Get the rectangle that is this one with a translated right-bound
-    ///
-    /// Bounds on other sides stay the same
-    fn move_right_bound(self, dx: Self::Scalar) -> Self {
-        Self::new(self.top_left(), self.size().with_x(self.width() + dx))
-    }
-    /// Get the rectangle that is this one with a translated top-bound
-    ///
-    /// Bounds on other sides stay the same
-    fn move_top_bound(self, dy: Self::Scalar) -> Self {
-        Self::new(
-            self.top_left().with_y(self.top() + dy),
-            self.size().with_y(self.height() - dy),
-        )
-    }
-    /// Get the rectangle that is this one with a translated bottom-bound
-    ///
-    /// Bounds on other sides stay the same
-    fn move_bottom_bound(self, dy: Self::Scalar) -> Self {
-        Self::new(self.top_left(), self.size().with_y(self.height() + dy))
     }
     /// Get an array the rectangle's four corners, clockwise from top-left
     fn corners(self) -> [Self::Vector; 4] {

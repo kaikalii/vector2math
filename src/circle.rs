@@ -1,4 +1,4 @@
-use crate::{Abs, FloatingScalar, FloatingVector2, Pow, Rectangle, Vector2, ZeroOneTwo};
+use crate::{Abs, FloatingScalar, FloatingVector2, Pow, Vector2, ZeroOneTwo};
 
 /// Trait for manipulating circles
 pub trait Circle: Copy {
@@ -13,7 +13,7 @@ pub trait Circle: Copy {
     /// Get the circle's radius
     fn radius(self) -> Self::Scalar;
     /// Map this circle to a circle of another type
-    fn map<C>(self) -> C
+    fn map_into<C>(self) -> C
     where
         C: Circle,
         C::Scalar: From<Self::Scalar>,
@@ -66,14 +66,14 @@ pub trait Circle: Copy {
         self.with_radius(self.radius() * scale)
     }
     /// Get the smallest square that this circle fits inside
-    fn to_square<R>(self) -> R
-    where
-        R: Rectangle<Scalar = Self::Scalar, Vector = Self::Vector>,
-    {
-        R::new(
-            self.center().sub(R::Vector::square(self.radius())),
-            R::Vector::square(self.radius() * R::Scalar::TWO),
-        )
+    fn to_square(self) -> [Self::Scalar; 4] {
+        let radius = self.radius();
+        [
+            self.center().x() - radius / Self::Scalar::TWO,
+            self.center().y() - radius / Self::Scalar::TWO,
+            radius * Self::Scalar::TWO,
+            radius * Self::Scalar::TWO,
+        ]
     }
     /// Check that the circle contains the given point
     fn contains(self, point: Self::Vector) -> bool {

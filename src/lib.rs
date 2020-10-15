@@ -314,30 +314,25 @@ pub trait Vector2: Copy {
     }
     /// Map this vector to a vector of another type
     #[inline(always)]
-    fn map<V>(self) -> V
+    fn map_into<V>(self) -> V
     where
         V: Vector2,
         V::Scalar: From<Self::Scalar>,
     {
         V::new(V::Scalar::from(self.x()), V::Scalar::from(self.y()))
     }
-    /// Map this vector to a `[f32;2]`
+    /// Map this vector to a `[Self::Scalar; 2]`
     ///
-    /// This is an alias for Vector2::map::<[f32;2]>() that is more concise
-    fn map_f32(self) -> [f32; 2]
-    where
-        f32: From<Self::Scalar>,
-    {
-        self.map()
+    /// This is an alias for `Vector2::map_into::<[Self::Scalar; 2]>()` that is more concise
+    fn map_vec2(self) -> [Self::Scalar; 2] {
+        self.map_into()
     }
-    /// Map this vector to a `[f64;2]`
-    ///
-    /// This is an alias for Vector2::map::<[f64;2]>() that is more concise
-    fn map_f64(self) -> [f64; 2]
+    /// Map the individual components of this vector
+    fn map_dims<F>(self, mut f: F) -> Self
     where
-        f64: From<Self::Scalar>,
+        F: FnMut(Self::Scalar) -> Self::Scalar,
     {
-        self.map()
+        Self::new(f(self.x()), f(self.y()))
     }
     /// Map this vector to a vector of another type using a function
     fn map_with<V, F>(self, mut f: F) -> V
@@ -465,6 +460,10 @@ pub trait FloatingVector2: Vector2
 where
     Self::Scalar: FloatingScalar,
 {
+    /// Create a new unit vector from the given angle in radians
+    fn from_angle(radians: Self::Scalar) -> Self {
+        Self::new(radians.cos(), radians.sin())
+    }
     /// Get the distance between this vector and another
     #[inline(always)]
     fn dist(self, to: Self) -> Self::Scalar {
