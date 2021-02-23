@@ -1,6 +1,7 @@
 [dependencies.packed_simd]
 optional = true
-version = '0.3.3'
+package = 'packed_simd_2'
+version = '0.3.4'
 
 [features]
 default = []

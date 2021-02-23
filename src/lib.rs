@@ -89,7 +89,6 @@ assert_eq!([3, 5], rect.center());
 assert_eq!(20, rect.perimeter());
 assert_eq!(24, rect.area());
 assert!(rect.contains([3, 5]));
-assert_eq!([1, 2, 2, 6], rect.move_right_bound(-2));
 let corners = rect.corners();
 assert_eq!(corners[0], [1, 2]);
 assert_eq!(corners[1], [5, 2]);
@@ -122,20 +121,20 @@ Vector, rectangle, and circle types can be easily mapped to different types:
 use vector2math::*;
 
 let arrayf32: [f32; 2] = [1.0, 2.0];
-let arrayf64: [f64; 2] = arrayf32.map();
-let pairf64: (f64, f64) = arrayf64.map();
+let arrayf64: [f64; 2] = arrayf32.map_into();
+let pairf64: (f64, f64) = arrayf64.map_into();
 let arrayi16: [i16; 2] = pairf64.map_with(|f| f as i16);
-assert_eq!(arrayf32, arrayi16.map_f32());
+assert_eq!(arrayf32, arrayi16.map_into::<f32::Vec2>());
 
 let weird_rect = [(0.0, 1.0), (2.0, 5.0)];
-let normal_rectf32: [f32; 4] = weird_rect.map();
-let normal_rectf64: [f64; 4] = normal_rectf32.map();
+let normal_rectf32: [f32; 4] = weird_rect.map_into();
+let normal_rectf64: [f64; 4] = normal_rectf32.map_into();
 let normal_rectu8: [u8; 4] = normal_rectf32.map_with(|f| f as u8);
 assert_eq!([0, 1, 2, 5], normal_rectu8);
 
 let pair_circlef32 = ((0.0, 1.0), 2.0);
 let array_circlef32 = ([0.0, 1.0], 2.0);
-assert_eq!(((0.0, 1.0), 2.0), array_circlef32.map::<((f64, f64), f64)>());
+assert_eq!(((0.0, 1.0), 2.0), array_circlef32.map_into::<((f64, f64), f64)>());
 ```
 
 # Transforms
@@ -210,7 +209,7 @@ impl Rectangle for MyRectangle {
     }
 }
 
-let rect: MyRectangle = [1, 2, 3, 4].map();
+let rect: MyRectangle = [1, 2, 3, 4].map_into();
 assert_eq!(12.0, rect.area());
 assert_eq!(6.0, rect.bottom());
 ```
@@ -467,15 +466,23 @@ where
     /// Get the distance between this vector and another
     #[inline(always)]
     fn dist(self, to: Self) -> Self::Scalar {
-        let cdiff = self.sub(to);
-        (cdiff.x().pow(Self::Scalar::TWO) + cdiff.y().pow(Self::Scalar::TWO))
-            .pow(Self::Scalar::ONE / Self::Scalar::TWO)
+        self.sub(to).mag()
+    }
+    /// Get the squared distance between this vector and another
+    #[inline(always)]
+    fn squared_dist(self, to: Self) -> Self::Scalar {
+        self.sub(to).squared_mag()
     }
     /// Get the vector's magnitude
     #[inline(always)]
     fn mag(self) -> Self::Scalar {
-        (self.x().pow(Self::Scalar::TWO) + self.y().pow(Self::Scalar::TWO))
+        self.squared_mag()
             .pow(Self::Scalar::ONE / Self::Scalar::TWO)
+    }
+    /// Get the vector's squared magnitude
+    #[inline(always)]
+    fn squared_mag(self) -> Self::Scalar {
+        self.x().pow(Self::Scalar::TWO) + self.y().pow(Self::Scalar::TWO)
     }
     /// Get the unit vector
     #[inline(always)]

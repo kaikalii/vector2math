@@ -111,6 +111,6 @@ fn simd() {
     let b = f32x2::new(3.0, 5.0);
     let c = a.add(b);
     assert_eq!(f32x2::new(4.0, 7.0), c);
-    let c = a.transform(f32::Trans::new().translate(b));
+    let c = a.transform(f32::Trans::identity().translate(b));
     assert_eq!(f32x2::new(4.0, 7.0), c);
 }

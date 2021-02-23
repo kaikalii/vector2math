@@ -18,6 +18,7 @@ pub trait Pair: Sized {
     /// The type of the pair's item
     type Item;
     /// Get the pair
+    #[allow(clippy::wrong_self_convention)]
     fn to_pair(self) -> (Self::Item, Self::Item);
     /// Create a pair from two items
     fn from_items(a: Self::Item, b: Self::Item) -> Self;
@@ -134,6 +135,7 @@ pub trait Trio: Sized {
     /// The type of the trio's item
     type Item;
     /// Get the trio
+    #[allow(clippy::wrong_self_convention)]
     fn to_trio(self) -> (Self::Item, Self::Item, Self::Item);
     /// Create a trio from three items
     fn from_items(a: Self::Item, b: Self::Item, c: Self::Item) -> Self;
