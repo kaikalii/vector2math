@@ -59,6 +59,12 @@ macro_rules! impl_simd_vector2 {
             fn y(self) -> Self::Scalar {
                 unsafe { self.extract_unchecked(1) }
             }
+            fn with_x(self, x: $Scalar) -> Self {
+                unsafe { self.replace_unchecked(0, x) }
+            }
+            fn with_y(self, y: $Scalar) -> Self {
+                unsafe { self.replace_unchecked(1, y) }
+            }
             fn square(s: Self::Scalar) -> Self {
                 Self::splat(s)
             }

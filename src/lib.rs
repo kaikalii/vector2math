@@ -426,11 +426,9 @@ pub trait Vector2: Copy {
         }
     }
     /// Get the dot product of this vector and another
-    fn dot<V>(self, other: V) -> Self::Scalar
-    where
-        V: Vector2<Scalar = Self::Scalar>,
-    {
-        self.x() * other.x() + self.y() * other.y()
+    fn dot(self, other: Self) -> Self::Scalar {
+        let sum = self.mul2(other);
+        sum.x() + sum.y()
     }
 }
 
