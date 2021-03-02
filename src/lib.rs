@@ -526,6 +526,10 @@ where
     {
         transform.apply(self)
     }
+    /// Project this vector onto another
+    fn project(self, other: Self) -> Self {
+        other.unit().mul(self.dot(other) * self.mag())
+    }
 }
 
 impl<T> FloatingVector2 for T
