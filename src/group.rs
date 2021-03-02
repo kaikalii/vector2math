@@ -18,10 +18,13 @@ pub trait Pair: Sized {
     /// The type of the pair's item
     type Item;
     /// Get the pair
-    #[allow(clippy::wrong_self_convention)]
-    fn to_pair(self) -> (Self::Item, Self::Item);
+    fn into_pair(self) -> (Self::Item, Self::Item);
     /// Create a pair from two items
     fn from_items(a: Self::Item, b: Self::Item) -> Self;
+    /// Get the first item
+    fn first(&self) -> Self::Item;
+    /// Get the second item
+    fn second(&self) -> Self::Item;
     /// Apply a function pairwise to the items of two pairs
     fn pairwise<O, P, F, R>(self, other: O, f: F) -> P
     where
@@ -29,26 +32,37 @@ pub trait Pair: Sized {
         P: Pair<Item = R>,
         F: Fn(Self::Item, O::Item) -> R,
     {
-        let (a, b) = self.to_pair();
-        let (c, d) = other.to_pair();
+        let (a, b) = self.into_pair();
+        let (c, d) = other.into_pair();
         P::from_items(f(a, c), f(b, d))
     }
     /// Get an iterator over the pair's items
     fn pair_iter(self) -> Chain2<Self::Item> {
-        let (a, b) = self.to_pair();
+        let (a, b) = self.into_pair();
         once(a).chain(once(b))
     }
 }
 
-impl<T> Pair for (T, T) {
+impl<T> Pair for (T, T)
+where
+    T: Clone,
+{
     type Item = T;
     #[inline(always)]
-    fn to_pair(self) -> (Self::Item, Self::Item) {
+    fn into_pair(self) -> (Self::Item, Self::Item) {
         self
     }
     #[inline(always)]
     fn from_items(a: Self::Item, b: Self::Item) -> Self {
         (a, b)
+    }
+    #[inline(always)]
+    fn first(&self) -> Self::Item {
+        self.0.clone()
+    }
+    #[inline(always)]
+    fn second(&self) -> Self::Item {
+        self.1.clone()
     }
 }
 
@@ -58,24 +72,43 @@ where
 {
     type Item = T;
     #[inline(always)]
-    fn to_pair(self) -> (Self::Item, Self::Item) {
+    fn into_pair(self) -> (Self::Item, Self::Item) {
         (self[0], self[1])
     }
     #[inline(always)]
     fn from_items(a: Self::Item, b: Self::Item) -> Self {
         [a, b]
     }
+    #[inline(always)]
+    fn first(&self) -> Self::Item {
+        self[0]
+    }
+    #[inline(always)]
+    fn second(&self) -> Self::Item {
+        self[1]
+    }
 }
 
-impl<T> Pair for (T, T, T, T) {
+impl<T> Pair for (T, T, T, T)
+where
+    T: Clone,
+{
     type Item = (T, T);
     #[inline(always)]
-    fn to_pair(self) -> (Self::Item, Self::Item) {
+    fn into_pair(self) -> (Self::Item, Self::Item) {
         ((self.0, self.1), (self.2, self.3))
     }
     #[inline(always)]
     fn from_items(a: Self::Item, b: Self::Item) -> Self {
         (a.0, a.1, b.0, b.1)
+    }
+    #[inline(always)]
+    fn first(&self) -> Self::Item {
+        (self.0.clone(), self.1.clone())
+    }
+    #[inline(always)]
+    fn second(&self) -> Self::Item {
+        (self.2.clone(), self.3.clone())
     }
 }
 
@@ -85,24 +118,43 @@ where
 {
     type Item = [T; 2];
     #[inline(always)]
-    fn to_pair(self) -> (Self::Item, Self::Item) {
+    fn into_pair(self) -> (Self::Item, Self::Item) {
         ([self[0], self[1]], [self[2], self[3]])
     }
     #[inline(always)]
     fn from_items(a: Self::Item, b: Self::Item) -> Self {
         [a[0], a[1], b[0], b[1]]
     }
+    #[inline(always)]
+    fn first(&self) -> Self::Item {
+        [self[0], self[1]]
+    }
+    #[inline(always)]
+    fn second(&self) -> Self::Item {
+        [self[2], self[3]]
+    }
 }
 
-impl<T> Pair for (T, T, T, T, T, T) {
+impl<T> Pair for (T, T, T, T, T, T)
+where
+    T: Clone,
+{
     type Item = (T, T, T);
     #[inline(always)]
-    fn to_pair(self) -> (Self::Item, Self::Item) {
+    fn into_pair(self) -> (Self::Item, Self::Item) {
         ((self.0, self.1, self.2), (self.3, self.4, self.5))
     }
     #[inline(always)]
     fn from_items(a: Self::Item, b: Self::Item) -> Self {
         (a.0, a.1, a.2, b.0, b.1, b.2)
+    }
+    #[inline(always)]
+    fn first(&self) -> Self::Item {
+        (self.0.clone(), self.1.clone(), self.2.clone())
+    }
+    #[inline(always)]
+    fn second(&self) -> Self::Item {
+        (self.3.clone(), self.4.clone(), self.5.clone())
     }
 }
 
@@ -112,12 +164,20 @@ where
 {
     type Item = [T; 3];
     #[inline(always)]
-    fn to_pair(self) -> (Self::Item, Self::Item) {
+    fn into_pair(self) -> (Self::Item, Self::Item) {
         ([self[0], self[1], self[2]], [self[3], self[4], self[5]])
     }
     #[inline(always)]
     fn from_items(a: Self::Item, b: Self::Item) -> Self {
         [a[0], a[1], a[2], b[0], b[1], b[2]]
+    }
+    #[inline(always)]
+    fn first(&self) -> Self::Item {
+        [self[0], self[1], self[2]]
+    }
+    #[inline(always)]
+    fn second(&self) -> Self::Item {
+        [self[3], self[4], self[5]]
     }
 }
 
@@ -136,7 +196,7 @@ pub trait Trio: Sized {
     type Item;
     /// Get the trio
     #[allow(clippy::wrong_self_convention)]
-    fn to_trio(self) -> (Self::Item, Self::Item, Self::Item);
+    fn into_trio(self) -> (Self::Item, Self::Item, Self::Item);
     /// Create a trio from three items
     fn from_items(a: Self::Item, b: Self::Item, c: Self::Item) -> Self;
     /// Apply a function pairwise to the items of two trios
@@ -146,13 +206,13 @@ pub trait Trio: Sized {
         T: Trio<Item = R>,
         F: Fn(Self::Item, O::Item) -> R,
     {
-        let (a, b, c) = self.to_trio();
-        let (d, e, f) = other.to_trio();
+        let (a, b, c) = self.into_trio();
+        let (d, e, f) = other.into_trio();
         T::from_items(ff(a, d), ff(b, e), ff(c, f))
     }
     /// Get an iterator over the trio's items
     fn trio_iter(self) -> Chain3<Self::Item> {
-        let (a, b, c) = self.to_trio();
+        let (a, b, c) = self.into_trio();
         once(a).chain(once(b)).chain(once(c))
     }
 }
@@ -160,7 +220,7 @@ pub trait Trio: Sized {
 impl<T> Trio for (T, T, T) {
     type Item = T;
     #[inline(always)]
-    fn to_trio(self) -> (Self::Item, Self::Item, Self::Item) {
+    fn into_trio(self) -> (Self::Item, Self::Item, Self::Item) {
         self
     }
     #[inline(always)]
@@ -175,7 +235,7 @@ where
 {
     type Item = T;
     #[inline(always)]
-    fn to_trio(self) -> (Self::Item, Self::Item, Self::Item) {
+    fn into_trio(self) -> (Self::Item, Self::Item, Self::Item) {
         (self[0], self[1], self[2])
     }
     #[inline(always)]
@@ -187,7 +247,7 @@ where
 impl<T> Trio for (T, T, T, T, T, T) {
     type Item = (T, T);
     #[inline(always)]
-    fn to_trio(self) -> (Self::Item, Self::Item, Self::Item) {
+    fn into_trio(self) -> (Self::Item, Self::Item, Self::Item) {
         ((self.0, self.1), (self.2, self.3), (self.4, self.5))
     }
     #[inline(always)]
@@ -202,7 +262,7 @@ where
 {
     type Item = [T; 2];
     #[inline(always)]
-    fn to_trio(self) -> (Self::Item, Self::Item, Self::Item) {
+    fn into_trio(self) -> (Self::Item, Self::Item, Self::Item) {
         ([self[0], self[1]], [self[2], self[3]], [self[4], self[5]])
     }
     #[inline(always)]

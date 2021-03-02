@@ -181,10 +181,10 @@ impl Vector2 for MyVector {
     fn new(x: f64, y: f64) -> Self {
         MyVector { x, y }
     }
-    fn x(self) -> f64 {
+    fn x(&self) -> f64 {
         self.x
     }
-    fn y(self) -> f64 {
+    fn y(&self) -> f64 {
         self.y
     }
 }
@@ -286,9 +286,9 @@ pub trait Vector2: Copy {
     /// The scalar type
     type Scalar: Scalar;
     /// Get the x component
-    fn x(self) -> Self::Scalar;
+    fn x(&self) -> Self::Scalar;
     /// Get the y component
-    fn y(self) -> Self::Scalar;
+    fn y(&self) -> Self::Scalar;
     /// Create a new vector from an x and y component
     fn new(x: Self::Scalar, y: Self::Scalar) -> Self;
     /// Set the x component
@@ -439,12 +439,12 @@ where
 {
     type Scalar = P::Item;
     #[inline(always)]
-    fn x(self) -> P::Item {
-        self.to_pair().0
+    fn x(&self) -> P::Item {
+        self.first()
     }
     #[inline(always)]
-    fn y(self) -> P::Item {
-        self.to_pair().1
+    fn y(&self) -> P::Item {
+        self.second()
     }
     #[inline(always)]
     fn new(x: P::Item, y: P::Item) -> Self {

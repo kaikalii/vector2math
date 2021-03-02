@@ -79,12 +79,12 @@ where
         )
     }
     fn then(self, next: Self) -> Self {
-        let (a1, a2) = next.to_pair();
-        let (b1, b2) = self.to_pair();
-        let (a11, a12, a13) = a1.to_trio();
-        let (a21, a22, a23) = a2.to_trio();
-        let (b11, b12, b13) = b1.to_trio();
-        let (b21, b22, b23) = b2.to_trio();
+        let (a1, a2) = next.into_pair();
+        let (b1, b2) = self.into_pair();
+        let (a11, a12, a13) = a1.into_trio();
+        let (a21, a22, a23) = a2.into_trio();
+        let (b11, b12, b13) = b1.into_trio();
+        let (b21, b22, b23) = b2.into_trio();
         M::from_items(
             C::from_items(
                 a11 * b11 + a12 * b21,
@@ -103,7 +103,7 @@ where
         V: Vector2<Scalar = Self::Scalar>,
     {
         let vtrio = C::from_items(vector.x(), vector.y(), V::Scalar::ONE);
-        let (a, b) = self.to_pair();
+        let (a, b) = self.into_pair();
         let xp: C = a.pairwise(vtrio, Mul::mul);
         let yp: C = b.pairwise(vtrio, Mul::mul);
         let x = xp.trio_iter().fold(Self::Scalar::ZERO, Add::add);

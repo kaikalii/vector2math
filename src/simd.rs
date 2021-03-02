@@ -53,10 +53,10 @@ macro_rules! impl_simd_vector2 {
             fn new(x: Self::Scalar, y: Self::Scalar) -> Self {
                 <$Vector>::new(x, y)
             }
-            fn x(self) -> Self::Scalar {
+            fn x(&self) -> Self::Scalar {
                 unsafe { self.extract_unchecked(0) }
             }
-            fn y(self) -> Self::Scalar {
+            fn y(&self) -> Self::Scalar {
                 unsafe { self.extract_unchecked(1) }
             }
             fn with_x(self, x: $Scalar) -> Self {
