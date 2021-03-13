@@ -214,17 +214,20 @@ assert_eq!(6.0, rect.bottom());
 ```
 */
 
-macro_rules! mods {
-    ($($m:ident),*) => {
-        $(mod $m; pub use $m::*;)*
-    };
-}
-
 #[cfg(feature = "simd")]
 #[cfg_attr(feature = "simd", doc(cfg(feature = "simd")))]
 pub mod simd;
 
-mods!(circle, group, rectangle, scalar, transform);
+pub mod circle;
+pub use circle::Circle;
+mod group;
+pub use group::*;
+pub mod rectangle;
+pub use rectangle::Rectangle;
+mod scalar;
+pub use scalar::*;
+mod transform;
+pub use transform::*;
 
 macro_rules! int_mod {
     ($T:ident) => {

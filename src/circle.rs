@@ -1,6 +1,9 @@
+//! Module for the [`Circle`] trait
+
 use crate::{Abs, FloatingScalar, FloatingVector2, Pow, Vector2, ZeroOneTwo};
 
-type Scalar<T> = <<T as Circle>::Vector as Vector2>::Scalar;
+/// The scalar type of a [`Circle`]
+pub type Scalar<T> = <<T as Circle>::Vector as Vector2>::Scalar;
 
 /// Trait for manipulating circles
 pub trait Circle: Copy

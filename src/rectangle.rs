@@ -1,6 +1,9 @@
+//! Module for the [`Rectangle`] trait
+
 use crate::{Abs, Pair, Scalar as _, Vector2, ZeroOneTwo};
 
-type Scalar<T> = <<T as Rectangle>::Vector as Vector2>::Scalar;
+/// The scalar type of a [`Rectangle`]
+pub type Scalar<T> = <<T as Rectangle>::Vector as Vector2>::Scalar;
 
 /**
 Trait for manipulating axis-aligned rectangles
