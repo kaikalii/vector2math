@@ -1,36 +1,40 @@
 use crate::{Abs, FloatingScalar, FloatingVector2, Pow, Vector2, ZeroOneTwo};
 
+type Scalar<T> = <<T as Circle>::Vector as Vector2>::Scalar;
+
 /// Trait for manipulating circles
-pub trait Circle: Copy {
-    /// The scalar type
-    type Scalar: FloatingScalar;
+pub trait Circle: Copy
+where
+    Scalar<Self>: FloatingScalar,
+{
     /// The vector type
-    type Vector: FloatingVector2<Scalar = Self::Scalar>;
+    type Vector: FloatingVector2;
     /// Create a new circle from a center coordinate and a radius
-    fn new(center: Self::Vector, radius: Self::Scalar) -> Self;
+    fn new(center: Self::Vector, radius: Scalar<Self>) -> Self;
     /// Get the circle's center
     fn center(self) -> Self::Vector;
     /// Get the circle's radius
-    fn radius(self) -> Self::Scalar;
+    fn radius(self) -> Scalar<Self>;
     /// Map this circle to a circle of another type
     fn map_into<C>(self) -> C
     where
         C: Circle,
-        C::Scalar: From<Self::Scalar>,
+        Scalar<C>: FloatingScalar + From<Scalar<Self>>,
     {
         C::new(
             C::Vector::new(
-                C::Scalar::from(self.center().x()),
-                C::Scalar::from(self.center().y()),
+                Scalar::<C>::from(self.center().x()),
+                Scalar::<C>::from(self.center().y()),
             ),
-            C::Scalar::from(self.radius()),
+            Scalar::<C>::from(self.radius()),
         )
     }
     /// Map this circle to a circle of another type using a function
     fn map_with<C, F>(self, mut f: F) -> C
     where
         C: Circle,
-        F: FnMut(Self::Scalar) -> <<C as Circle>::Vector as Vector2>::Scalar,
+        Scalar<C>: FloatingScalar,
+        F: FnMut(Scalar<Self>) -> <<C as Circle>::Vector as Vector2>::Scalar,
     {
         C::new(
             C::Vector::new(f(self.center().x()), f(self.center().y())),
@@ -42,37 +46,37 @@ pub trait Circle: Copy {
         Self::new(center, self.radius())
     }
     /// Transform the circle into one with a different size
-    fn with_radius(self, radius: Self::Scalar) -> Self {
+    fn with_radius(self, radius: Scalar<Self>) -> Self {
         Self::new(self.center(), radius)
     }
     /// Get the circle's diameter
-    fn diameter(self) -> Self::Scalar {
-        self.radius() * Self::Scalar::TWO
+    fn diameter(self) -> Scalar<Self> {
+        self.radius() * Scalar::<Self>::TWO
     }
     /// Get the circle's circumference
-    fn circumference(self) -> Self::Scalar {
-        self.radius() * Self::Scalar::TAU
+    fn circumference(self) -> Scalar<Self> {
+        self.radius() * Scalar::<Self>::TAU
     }
     /// Get the circle's area
-    fn area(self) -> Self::Scalar {
-        self.radius().pow(Self::Scalar::TWO) * Self::Scalar::pi()
+    fn area(self) -> Scalar<Self> {
+        self.radius().pow(Scalar::<Self>::TWO) * Scalar::<Self>::pi()
     }
     /// Get the circle that is this one translated by some vector
     fn translated(self, offset: Self::Vector) -> Self {
         self.with_center(self.center().add(offset))
     }
     /// Get the circle that is this one with a scalar-scaled size
-    fn scaled(self, scale: Self::Scalar) -> Self {
+    fn scaled(self, scale: Scalar<Self>) -> Self {
         self.with_radius(self.radius() * scale)
     }
     /// Get the smallest square that this circle fits inside
-    fn to_square(self) -> [Self::Scalar; 4] {
+    fn to_square(self) -> [Scalar<Self>; 4] {
         let radius = self.radius();
         [
             self.center().x() - radius,
             self.center().y() - radius,
-            radius * Self::Scalar::TWO,
-            radius * Self::Scalar::TWO,
+            radius * Scalar::<Self>::TWO,
+            radius * Scalar::<Self>::TWO,
         ]
     }
     /// Check that the circle contains the given point
@@ -106,15 +110,14 @@ where
     S: FloatingScalar,
     V: FloatingVector2<Scalar = S>,
 {
-    type Scalar = S;
     type Vector = V;
-    fn new(center: Self::Vector, radius: Self::Scalar) -> Self {
+    fn new(center: Self::Vector, radius: Scalar<Self>) -> Self {
         (center, radius)
     }
     fn center(self) -> Self::Vector {
         self.0
     }
-    fn radius(self) -> Self::Scalar {
+    fn radius(self) -> Scalar<Self> {
         self.1
     }
 }

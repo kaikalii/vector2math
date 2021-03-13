@@ -196,7 +196,6 @@ struct MyRectangle {
 }
 
 impl Rectangle for MyRectangle {
-    type Scalar = f64;
     type Vector = MyVector;
     fn new(top_left: MyVector, size: MyVector) -> Self {
         MyRectangle { top_left, size }

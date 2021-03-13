@@ -1,4 +1,6 @@
-use crate::{Abs, Pair, Scalar, Vector2, ZeroOneTwo};
+use crate::{Abs, Pair, Scalar as _, Vector2, ZeroOneTwo};
+
+type Scalar<T> = <<T as Rectangle>::Vector as Vector2>::Scalar;
 
 /**
 Trait for manipulating axis-aligned rectangles
@@ -31,10 +33,8 @@ assert_eq!(
 ```
 */
 pub trait Rectangle: Copy {
-    /// The scalar type
-    type Scalar: Scalar;
     /// The vector type
-    type Vector: Vector2<Scalar = Self::Scalar>;
+    type Vector: Vector2;
     /// Create a new rectangle from a top-left corner position and a size
     fn new(top_left: Self::Vector, size: Self::Vector) -> Self;
     /// Get the top-left corner position
@@ -42,42 +42,45 @@ pub trait Rectangle: Copy {
     /// Get the size
     fn size(self) -> Self::Vector;
     /// Create a new square from a top-left corner position and a side length
-    fn square(top_left: Self::Vector, side_length: Self::Scalar) -> Self {
+    fn square(top_left: Self::Vector, side_length: Scalar<Self>) -> Self {
         Self::new(top_left, Self::Vector::square(side_length))
     }
     /// Create a new rectangle from a center position and a size
     fn centered(center: Self::Vector, size: Self::Vector) -> Self {
-        Self::new(center.sub(size.div(Self::Scalar::TWO)), size)
+        Self::new(center.sub(size.div(Scalar::<Self>::TWO)), size)
     }
     /// Create a new square from a top-left corner position and a side length
-    fn square_centered(center: Self::Vector, side_length: Self::Scalar) -> Self {
+    fn square_centered(center: Self::Vector, side_length: Scalar<Self>) -> Self {
         Self::centered(center, Self::Vector::square(side_length))
     }
     /// Map this rectangle to a rectangle of another type
     fn map_into<R>(self) -> R
     where
         R: Rectangle,
-        R::Scalar: From<Self::Scalar>,
+        Scalar<R>: From<Scalar<Self>>,
     {
         R::new(
-            R::Vector::new(R::Scalar::from(self.left()), R::Scalar::from(self.top())),
             R::Vector::new(
-                R::Scalar::from(self.width()),
-                R::Scalar::from(self.height()),
+                Scalar::<R>::from(self.left()),
+                Scalar::<R>::from(self.top()),
+            ),
+            R::Vector::new(
+                Scalar::<R>::from(self.width()),
+                Scalar::<R>::from(self.height()),
             ),
         )
     }
-    /// Map this rectangle to a `[Self::Scalar; 4]`
+    /// Map this rectangle to a `[Scalar<Self>; 4]`
     ///
-    /// This is an alias for `Rectangle::map_into::<[Self::Scalar; 4]>()` that is more concise
-    fn map_rect(self) -> [Self::Scalar; 4] {
+    /// This is an alias for `Rectangle::map_into::<[Scalar<Self>; 4]>()` that is more concise
+    fn map_rect(self) -> [Scalar<Self>; 4] {
         self.map_into()
     }
     /// Map this rectangle to a rectangle of another type using a function
     fn map_with<R, F>(self, mut f: F) -> R
     where
         R: Rectangle,
-        F: FnMut(Self::Scalar) -> <<R as Rectangle>::Vector as Vector2>::Scalar,
+        F: FnMut(Scalar<Self>) -> <<R as Rectangle>::Vector as Vector2>::Scalar,
     {
         R::new(
             R::Vector::new(f(self.left()), f(self.top())),
@@ -128,56 +131,56 @@ pub trait Rectangle: Copy {
         self.abs_top_left().add(self.abs_size())
     }
     /// Get the top y
-    fn top(self) -> Self::Scalar {
+    fn top(self) -> Scalar<Self> {
         self.top_left().y()
     }
     /// Get the bottom y
-    fn bottom(self) -> Self::Scalar {
+    fn bottom(self) -> Scalar<Self> {
         self.top_left().y() + self.size().y()
     }
     /// Get the left x
-    fn left(self) -> Self::Scalar {
+    fn left(self) -> Scalar<Self> {
         self.top_left().x()
     }
     /// Get the right x
-    fn right(self) -> Self::Scalar {
+    fn right(self) -> Scalar<Self> {
         self.top_left().x() + self.size().x()
     }
     /// Get the absolute top y
-    fn abs_top(self) -> Self::Scalar {
+    fn abs_top(self) -> Scalar<Self> {
         self.abs_top_left().y()
     }
     /// Get the absolute bottom y
-    fn abs_bottom(self) -> Self::Scalar {
+    fn abs_bottom(self) -> Scalar<Self> {
         self.abs_top_left().y() + self.abs_size().y()
     }
     /// Get the absolute left x
-    fn abs_left(self) -> Self::Scalar {
+    fn abs_left(self) -> Scalar<Self> {
         self.abs_top_left().x()
     }
     /// Get the absolute right x
-    fn abs_right(self) -> Self::Scalar {
+    fn abs_right(self) -> Scalar<Self> {
         self.abs_top_left().x() + self.abs_size().x()
     }
     /// Get the width
-    fn width(self) -> Self::Scalar {
+    fn width(self) -> Scalar<Self> {
         self.size().x()
     }
     /// Get the height
-    fn height(self) -> Self::Scalar {
+    fn height(self) -> Scalar<Self> {
         self.size().y()
     }
     /// Get the absolute width
-    fn abs_width(self) -> Self::Scalar {
+    fn abs_width(self) -> Scalar<Self> {
         self.abs_size().x()
     }
     /// Get the absolute height
-    fn abs_height(self) -> Self::Scalar {
+    fn abs_height(self) -> Scalar<Self> {
         self.abs_size().y()
     }
     /// Get the position of the center
     fn center(self) -> Self::Vector {
-        self.top_left().add(self.size().div(Self::Scalar::TWO))
+        self.top_left().add(self.size().div(Scalar::<Self>::TWO))
     }
     /// Transform the rectangle into one with a different top-left corner position
     fn with_top_left(self, top_left: Self::Vector) -> Self {
@@ -192,11 +195,11 @@ pub trait Rectangle: Copy {
         Self::new(self.top_left(), size)
     }
     /// Get the perimeter
-    fn perimeter(self) -> Self::Scalar {
-        self.width() * Self::Scalar::TWO + self.height() * Self::Scalar::TWO
+    fn perimeter(self) -> Scalar<Self> {
+        self.width() * Scalar::<Self>::TWO + self.height() * Scalar::<Self>::TWO
     }
     /// Get the area
-    fn area(self) -> Self::Scalar {
+    fn area(self) -> Scalar<Self> {
         self.width() * self.height()
     }
     /// Get the rectangle that is this one translated by some vector
@@ -204,7 +207,7 @@ pub trait Rectangle: Copy {
         self.with_top_left(self.top_left().add(offset))
     }
     /// Get the rectangle that is this one with a scalar-scaled size
-    fn scaled(self, scale: Self::Scalar) -> Self {
+    fn scaled(self, scale: Scalar<Self>) -> Self {
         self.with_size(self.size().mul(scale))
     }
     /// Get the rectangle that is this one with a vector-scaled size
@@ -262,13 +265,13 @@ pub trait Rectangle: Copy {
     }
     /// Get the rectangle that is inside this one with the given
     /// margin on all sides
-    fn inner_margin(self, margin: Self::Scalar) -> Self {
+    fn inner_margin(self, margin: Scalar<Self>) -> Self {
         self.inner_margins([margin; 4])
     }
     /// Get the rectangle that is inside this one with the given margins
     ///
     /// Margins should be ordered `[left, right, top, bottom]`
-    fn inner_margins(self, [left, right, top, bottom]: [Self::Scalar; 4]) -> Self {
+    fn inner_margins(self, [left, right, top, bottom]: [Scalar<Self>; 4]) -> Self {
         Self::new(
             self.abs_top_left().add(Self::Vector::new(left, top)),
             self.abs_size()
@@ -277,13 +280,13 @@ pub trait Rectangle: Copy {
     }
     /// Get the rectangle that is outside this one with the given
     /// margin on all sides
-    fn outer_margin(self, margin: Self::Scalar) -> Self {
+    fn outer_margin(self, margin: Scalar<Self>) -> Self {
         self.outer_margins([margin; 4])
     }
     /// Get the rectangle that is outside this one with the given margins
     ///
     /// Margins should be ordered `[left, right, top, bottom]`
-    fn outer_margins(self, [left, right, top, bottom]: [Self::Scalar; 4]) -> Self {
+    fn outer_margins(self, [left, right, top, bottom]: [Scalar<Self>; 4]) -> Self {
         Self::new(
             self.abs_top_left().sub(Self::Vector::new(left, top)),
             self.abs_size()
@@ -297,7 +300,6 @@ where
     P: Pair + Copy,
     P::Item: Vector2,
 {
-    type Scalar = <P::Item as Vector2>::Scalar;
     type Vector = P::Item;
     fn new(top_left: Self::Vector, size: Self::Vector) -> Self {
         Self::from_items(top_left, size)
