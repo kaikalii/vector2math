@@ -13,9 +13,9 @@ Simple vector math is implemented for vectors with the following scalar types:
 * `isize`
 * `f32`
 * `f64`
-* Any type that implements [`Scalar`](trait.Scalar.html)
+* Any type that implements [`Scalar`]
 
-`f32` and `f64` implement [`FloatingScalar`](trait.FloatingScalar.html), which
+`f32` and `f64` implement [`FloatingScalar`], which
 gives some additional operations only applicable to floating-point numbers.
 
 Each scalar type has an associated module that has type definitions for standard
@@ -37,7 +37,7 @@ let square = f32::Rect::square([0.0; 2], 1.0);
 Vectors can be of the following forms:
 * `[T; 2]`
 * `(T, T)`
-* Any type that implements [`Vector2`](trait.Vector2.html)
+* Any type that implements [`Vector2`]
 
 Many 2D Vector operations are supported.
 ```
@@ -57,7 +57,7 @@ assert_eq!([0, -6], a.div2(b));
 assert_eq!(2, a.dot(b));
 ```
 
-Vectors that implement [`FloatingVector2`](trait.FloatingVector2.html) have additional operations:
+Vectors that implement [`FloatingVector2`] have additional operations:
 ```
 use vector2math::*;
 
@@ -77,8 +77,8 @@ Many types can be used to define axis-aligned rectangles:
 * `([T; 2], [T; 2])`
 * `[T; 4]`
 * `(T, T, T, T)`
-* Any type that implements [`Pair`](trait.Pair.html) where the associated
-[`Item`](trait.Pair.html#associatedtype.Item) type implements [`Vector2`](trait.Vector2.html).
+* Any type that implements [`Pair`] where the associated
+[`Pair::Item`] type implements [`Vector2`].
 ```
 use vector2math::*;
 
@@ -101,8 +101,8 @@ assert_eq!(corners[3], [1, 8]);
 A few types can be used to define circles:
 * `([T; 2], T)`
 * `((T, T), T)`
-* Any pair of types where the first implements [`FloatingVector2`](trait.FloatingVector2.html)
-and the second is the vector's [`Scalar`](trait.Vector2.html#associatedtype.Scalar) type.
+* Any pair of types where the first implements [`FloatingVector2`]
+and the second is the vector's [`Vector2::Scalar`] type.
 ```
 use vector2math::*;
 use std::f64;
@@ -139,14 +139,14 @@ assert_eq!(((0.0, 1.0), 2.0), array_circlef32.map_into::<((f64, f64), f64)>());
 
 # Transforms
 
-The [`Transform`](trait.Transform.html) trait is used to define 2D vector transforms.
-This crate implements [`Transform`](trait.Transform.html) for all types that implement
+The [`Transform`] trait is used to define 2D vector transforms.
+This crate implements [`Transform`] for all types that implement
 [`Pair`](trait.Pair.html) where the [`Pair`](trait.Pair.html)'s
-[`Item`](trait.Pair.html#associatedtype.Item) implments [`Trio`](trait.Trio.html)
-where the [`Trio`](trait.Trio.html)'s [`Item`](trait.Trio.html#associatedtype.Item)
-implements [`FloatingScalar`](trait.FloatingScalar.html). This type range includes
+[`Item`](trait.Pair.html#associatedtype.Item) implments [`Trio`]
+where the [`Trio`]'s [`Trio::Item`]
+implements [`FloatingScalar`]. This type range includes
 everything from `[[f32; 3]; 2]` to `(f64, f64, f64, f64, f64, f64)`.
-[`Transform`](trait.Transform.html)s can be chained and applied to vectors.
+[`Transform`]s can be chained and applied to vectors.
 ```
 use vector2math::*;
 
