@@ -476,13 +476,12 @@ where
     /// Get the vector's magnitude
     #[inline(always)]
     fn mag(self) -> Self::Scalar {
-        self.squared_mag()
-            .pow(Self::Scalar::ONE / Self::Scalar::TWO)
+        self.squared_mag().sqrt()
     }
     /// Get the vector's squared magnitude
     #[inline(always)]
     fn squared_mag(self) -> Self::Scalar {
-        self.x().pow(Self::Scalar::TWO) + self.y().pow(Self::Scalar::TWO)
+        self.x().square() + self.y().square()
     }
     /// Get the unit vector
     #[inline(always)]

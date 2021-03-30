@@ -1,6 +1,6 @@
 //! Module for the [`Circle`] trait
 
-use crate::{Abs, FloatingScalar, FloatingVector2, Pow, Vector2, ZeroOneTwo};
+use crate::{FloatingScalar, FloatingVector2, Scalar as _, Vector2};
 
 /// The scalar type of a [`Circle`]
 pub type Scalar<T> = <<T as Circle>::Vector as Vector2>::Scalar;
@@ -62,7 +62,7 @@ where
     }
     /// Get the circle's area
     fn area(self) -> Scalar<Self> {
-        self.radius().pow(Scalar::<Self>::TWO) * Scalar::<Self>::pi()
+        self.radius().square() * Scalar::<Self>::PI
     }
     /// Get the circle that is this one translated by some vector
     fn translated(self, offset: Self::Vector) -> Self {

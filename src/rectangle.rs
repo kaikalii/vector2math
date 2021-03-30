@@ -1,6 +1,6 @@
 //! Module for the [`Rectangle`] trait
 
-use crate::{Abs, Pair, Scalar as _, Vector2, ZeroOneTwo};
+use crate::{Pair, Scalar as _, Vector2};
 
 /// The scalar type of a [`Rectangle`]
 pub type Scalar<T> = <<T as Rectangle>::Vector as Vector2>::Scalar;

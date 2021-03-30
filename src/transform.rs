@@ -1,6 +1,6 @@
 use std::ops::{Add, Mul};
 
-use crate::{FloatingScalar, Pair, Trig, Trio, Vector2, ZeroOneTwo};
+use crate::{FloatingScalar, Pair, Scalar, Trio, Vector2};
 
 /**
 Trait for defining vector transformations
