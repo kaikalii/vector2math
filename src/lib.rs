@@ -559,3 +559,17 @@ fn transforms() {
     dbg!(v1.dist(v2) / f32::EPSILON);
     assert!(v1.dist(v2).is_near_zero(10.0));
 }
+
+#[cfg(test)]
+#[test]
+fn rect_with_bound() {
+    let rect = [0, 0, 5, 5];
+    let rt3 = rect.with_top(3);
+    let rb8 = rect.with_bottom(8);
+    let rl1 = rect.with_left(1);
+    let rr1 = rect.with_right(1);
+    assert_eq!(rt3, [0, 3, 5, 2]);
+    assert_eq!(rb8, [0, 0, 5, 8]);
+    assert_eq!(rl1, [1, 0, 4, 5]);
+    assert_eq!(rr1, [0, 0, 1, 5]);
+}

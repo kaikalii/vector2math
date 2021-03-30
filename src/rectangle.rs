@@ -185,17 +185,37 @@ pub trait Rectangle: Copy {
     fn center(self) -> Self::Vector {
         self.top_left().add(self.size().div(Scalar::<Self>::TWO))
     }
-    /// Transform the rectangle into one with a different top-left corner position
-    fn with_top_left(self, top_left: Self::Vector) -> Self {
-        Self::new(top_left, self.size())
-    }
-    /// Transform the rectangle into one with a different center position
-    fn with_center(self, center: Self::Vector) -> Self {
-        Self::centered(center, self.size())
-    }
     /// Transform the rectangle into one with a different size
     fn with_size(self, size: Self::Vector) -> Self {
         Self::new(self.top_left(), size)
+    }
+    /// Get the rectangle that is this one with a different top bound
+    fn with_top(self, top: Scalar<Self>) -> Self {
+        Self::new(
+            Self::Vector::new(self.left(), top),
+            Self::Vector::new(self.width(), self.bottom() - top),
+        )
+    }
+    /// Get the rectangle that is this one with a different bottom bound
+    fn with_bottom(self, bottom: Scalar<Self>) -> Self {
+        Self::new(
+            self.top_left(),
+            Self::Vector::new(self.width(), bottom - self.top()),
+        )
+    }
+    /// Get the rectangle that is this one with a different left bound
+    fn with_left(self, left: Scalar<Self>) -> Self {
+        Self::new(
+            Self::Vector::new(left, self.top()),
+            Self::Vector::new(self.right() - left, self.height()),
+        )
+    }
+    /// Get the rectangle that is this one with a different right bound
+    fn with_right(self, right: Scalar<Self>) -> Self {
+        Self::new(
+            self.top_left(),
+            Self::Vector::new(right - self.left(), self.height()),
+        )
     }
     /// Get the perimeter
     fn perimeter(self) -> Scalar<Self> {
@@ -207,7 +227,7 @@ pub trait Rectangle: Copy {
     }
     /// Get the rectangle that is this one translated by some vector
     fn translated(self, offset: Self::Vector) -> Self {
-        self.with_top_left(self.top_left().add(offset))
+        Self::new(self.top_left().add(offset), self.size())
     }
     /// Get the rectangle that is this one with a scalar-scaled size
     fn scaled(self, scale: Scalar<Self>) -> Self {
