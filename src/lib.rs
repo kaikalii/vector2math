@@ -529,7 +529,12 @@ where
     }
     /// Project this vector onto another
     fn project(self, other: Self) -> Self {
-        other.unit().mul(self.dot(other) * self.mag())
+        let mag = other.mag();
+        if mag < Self::Scalar::EPSILON {
+            Self::new(Self::Scalar::ZERO, Self::Scalar::ZERO)
+        } else {
+            other.unit().mul(self.dot(other) / mag)
+        }
     }
 }
 
