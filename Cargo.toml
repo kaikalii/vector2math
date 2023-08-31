@@ -15,7 +15,6 @@ version = '0.13.1'
 
 [dependencies.packed_simd]
 optional = true
-package = 'packed_simd_2'
 version = '0.3.8'
 
 [features]
