@@ -11,11 +11,11 @@ license = 'MIT'
 name = 'vector2math'
 readme = 'readme.md'
 repository = 'https://github.com/kaikalii/vector2math'
-version = '0.13.1'
+version = '0.14.0'
 
 [dependencies.packed_simd]
 optional = true
-version = '0.3.8'
+version = '0.3.9'
 
 [features]
 default = []
