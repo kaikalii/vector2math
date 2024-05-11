@@ -75,7 +75,7 @@ macro_rules! scalar_float_impl {
             const ONE: Self = 1.0;
             const TWO: Self = 2.0;
             fn abs(self) -> Self {
-                self.abs()
+                <$type>::abs(self)
             }
         }
     };
@@ -147,16 +147,16 @@ macro_rules! floating_scalar_impl {
             const TAU: Self = $pi * 2.0;
             const EPSILON: Self = $epsilon;
             fn sqrt(self) -> Self {
-                Self::sqrt(self)
+                <$type>::sqrt(self)
             }
             fn cos(self) -> Self {
-                Self::cos(self)
+                <$type>::cos(self)
             }
             fn sin(self) -> Self {
-                Self::sin(self)
+                <$type>::sin(self)
             }
             fn atan2(self, other: Self) -> Self {
-                self.atan2(other)
+                <$type>::atan2(self, other)
             }
         }
     };
