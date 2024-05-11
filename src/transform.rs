@@ -1,4 +1,4 @@
-use core::ops::{Add, Mul};
+use std::ops::{Add, Mul};
 
 use crate::{FloatingScalar, Pair, Scalar, Trio, Vector2};
 

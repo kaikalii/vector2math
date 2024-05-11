@@ -1,4 +1,4 @@
-use core::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 /// Trait for math with scalar numbers
 pub trait Scalar:
@@ -162,5 +162,5 @@ macro_rules! floating_scalar_impl {
     };
 }
 
-floating_scalar_impl!(f32, core::f32::consts::PI, core::f32::EPSILON);
-floating_scalar_impl!(f64, core::f64::consts::PI, core::f64::EPSILON);
+floating_scalar_impl!(f32, std::f32::consts::PI, std::f32::EPSILON);
+floating_scalar_impl!(f64, std::f64::consts::PI, std::f64::EPSILON);

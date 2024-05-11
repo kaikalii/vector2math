@@ -1,5 +1,4 @@
 #![warn(missing_docs)]
-#![cfg_attr(not(test), no_std)]
 #![cfg_attr(feature = "simd", feature(doc_cfg))]
 
 /*!
@@ -278,7 +277,7 @@ macro_rules! float_mod {
 float_mod!(f32);
 float_mod!(f64);
 
-use core::ops::Neg;
+use std::ops::Neg;
 
 pub use Circle as _;
 pub use Rectangle as _;

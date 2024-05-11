@@ -1,4 +1,4 @@
-use core::iter::{once, Chain, Once};
+use std::iter::{once, Chain, Once};
 
 /// An iterator over two items
 pub type Chain2<T> = Chain<Once<T>, Once<T>>;
